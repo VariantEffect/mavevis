@@ -1,0 +1,12 @@
+Package: mavevis
+Title: Visualization for MaveDB
+Version: 0.0.0.9000
+Authors@R: person("Jochen", "Weile", email = "jochenweile@gmail.com", role = c("aut", "cre"))
+Description: Query data from MaveDB and visualize as genophenograms with added tracks for structure information.
+Depends: R (>= 3.2.3)
+License: GPL
+Encoding: UTF-8
+LazyData: true
+Imports: rapimave, hgvsParseR, yogitools, httr, gdata, hash
+Suggests: testthat
+RoxygenNote: 6.0.1

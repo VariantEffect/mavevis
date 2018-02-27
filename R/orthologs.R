@@ -1,0 +1,225 @@
+
+library("httr")
+
+# source("lib/amasLite.R")
+
+options(stringsAsFactors=FALSE)
+set_config(config(ssl_verifypeer = 0L))
+
+
+#' Find PDB structures for a Uniprot accession
+#' 
+#' Finds PDB structures that contain the protein indicated by the given Uniprot accession.
+#' Checks for a local cache file of previous results. If such a cache exists, the pre-calculated
+#' results will be returned, otherwise queries to Uniprot and PDB will be made.
+#' 
+#' @param acc the Uniprot accession
+#' @return a \code{data.frame} with the following columns:
+#' \itemize{
+#'   \item pdb: the PDB accession of the structure
+#'   \item method: the experimental method for this structure, e.g NMR, X-ray or Model
+#'   \item resolution: the resolution of this structure, in Angstrom.
+#'   \item mainChains: a /-separated list of chain IDs that correspond to the protein
+#'      with the given Uniprot accession.
+#'   \item start: the first amino acid of the protein represented in the structure
+#'   \item end: the last amino acid of the protein represented in the structure
+#'   \item partners: a comma-separated list of interaction partners if the structure is 
+#'      of a complex. Each item follows the syntax chainID=UniprotID/ProteinName
+#' }
+#' @export
+find.pdbs <- function(acc) {
+	uniprot.base <- "https://www.uniprot.org/uniprot/"
+	pdb.header.base <- "https://files.rcsb.org/header/"
+	pdb.base <- "https://files.rcsb.org/download/"
+
+	table.file <- paste0(acc,"_pdbs.csv")
+
+	if (!file.exists(table.file)) {
+		#Get PDB XRefs
+		txt.url <- paste0(uniprot.base,acc,".txt")
+		htr <- GET(txt.url)
+		if (http_status(htr)$category != "Success") {
+			stop("Unable to access Uniprot!\n",http_status(htr)$message)
+		}
+		lines <- strsplit(content(htr,"text",encoding="UTF-8"),"\n")[[1]]
+		pdb.refs <- lines[grepl("^DR   PDB; ",lines)]
+		if (length(pdb.refs) > 0) {
+			pdb.refs <- sub("^DR   PDB; ","",sub("\\.$","",pdb.refs))
+			pdb.table <- as.data.frame(do.call(rbind,strsplit(pdb.refs,"; ")))
+			colnames(pdb.table) <- c("pdb","method","resolution","chainsAndRange")
+
+			cnr <- strsplit(pdb.table$chainsAndRange,"=")
+			pdb.table$mainChains <- sapply(cnr,`[[`,1)
+			range <- sapply(cnr,`[[`,2)
+			splRange <- strsplit(range,"-")
+			pdb.table$start <- sapply(splRange,`[[`,1)
+			pdb.table$end <- sapply(splRange,`[[`,2)
+			pdb.table$chainsAndRange <- NULL
+
+			cat("Extracting PDB complex partners")
+			other.prots <- mapply(function(pdb,self) {
+				Sys.sleep(0.5)
+				cat(".")
+				selves <- strsplit(self,"/")[[1]]
+				header.url <- paste0(pdb.base,pdb,".pdb")
+				htr <- GET(header.url)
+				if (http_status(htr)$category != "Success") {
+					stop("Unable to access PDB!\n",http_status(htr)$message)
+				}
+				lines <- strsplit(content(htr, "text",encoding="UTF-8"),"\n")[[1]]
+				xref.lines <- lines[grepl("^DBREF.+ UNP ",lines)]
+				chains <- substr(xref.lines,13,13)
+				xrefs <- trimws(substr(xref.lines,34,42))
+				protnames <- trimws(substr(xref.lines,43,55))
+				if (all(chains %in% selves)) {
+					return(NA)
+				} else {
+					self.i <- which(chains %in% selves)
+					return(unique(paste0(chains[-self.i],"=",xrefs[-self.i],"/",protnames[-self.i])))
+				}
+			},pdb=pdb.table$pdb,self=pdb.table$mainChains)
+			cat("done!\n")
+
+			pdb.table$partners <- sapply(other.prots,function(xs) if (length(xs)==1 && is.na(xs)) NA else paste(xs,collapse=","))
+
+		} else {
+			pdb.table <- NULL
+		}
+		write.table(pdb.table,table.file,sep=",",row.names=FALSE)
+	} else {
+		cat("Retrieving data from cache...\n")
+		pdb.table <- read.csv(table.file)
+	}
+
+	return(pdb.table)
+}
+
+#' Retrieve Uniprot Sequence
+#' 
+#' Retrieves the amino acid sequence for the protein indicated by a Uniprot accession.
+#' @param uniprot.acc the accession
+#' @return the amino acid sequence
+#' @export
+getUniprotSeq <- function(uniprot.acc) {
+
+	url <- paste0("https://www.uniprot.org/uniprot/",uniprot.acc,".fasta")
+
+	readFASTA <- function(file) {
+		lines <- scan(file,what="character",sep="\n")
+		if (length(lines) < 2) {
+			stop("Invalid FASTA format in ",file)
+		}
+		if (substr(lines[[1]],1,1) != ">") {
+			stop("Missing FASTA header in ",file)
+		}
+		paste(lines[-1],collapse="")
+	}
+
+	prot <- readFASTA(url)
+
+	# sapply(1:nchar(prot),function(i)substr(prot,i,i))
+	prot
+
+}
+
+#' Select smallest informative subset of PDB structures
+#' 
+#' Given the results of \code{find.pdbs()}, this function finds the smallest informative
+#' subset among them. That is, the smallest set of PDB structures, that still represent all
+#' available interaction partners.
+#' @param pdb.table The result of \code{find.pdbs()}
+#' @return a vector with the IDs of the selected PDB structures.
+pdb.informative <- function(pdb.table) {
+
+	protsPerStruc <- lapply(strsplit(pdb.table$partners,","),function(x) unique(gsub("^\\w{1}=|/.+","",x)))
+	names(protsPerStruc) <- pdb.table$pdb
+	#reverse, so later structures are listed first
+	protsPerStruc <- rev(protsPerStruc)
+	unique.prots <- unique(do.call(c,protsPerStruc))
+	numPerStruc <- sapply(protsPerStruc,function(x) if (length(x)==1 && is.na(x)) 0 else length(x))
+	#use greedy approach to find minimized subset
+	selected <- character()
+	protsLeft <- unique.prots
+	while(length(protsLeft) > 1) {
+		curr <- names(which.max(numPerStruc))
+		selected <- c(selected,curr)
+		toRemove <- protsPerStruc[[curr]]
+		protsPerStruc <- lapply(protsPerStruc,setdiff,toRemove)
+		protsLeft <- setdiff(protsLeft,toRemove)
+		numPerStruc <- sapply(protsPerStruc,function(x) if (length(x)==1 && is.na(x)) 0 else length(x))
+	}
+
+	return(selected)
+
+}
+
+#' Calculate position-wise conservation from a Uniprot accession
+#' 
+#' Retrieves the 90% most similar proteins from Uniprot, runs ClustalO to 
+#' calculate a multiple sequence alignment and uses the AMAS algorithm to 
+#' derive the position-wise sequence conservation. If the given accession
+#' has been used as an input before, a cached sequence alignment will be
+#' used instead.
+#' 
+#' @param acc the Uniprot accession
+#' @return a numerical vector with the position-wise conservation.
+#' @export
+calc.conservation <- function(acc) {
+	uniprot.base <- "https://www.uniprot.org/uniprot/"
+	uniref90.base <- "https://www.uniprot.org/uniref/UniRef90_"
+	uniparc.base <- "https://www.uniprot.org/uniparc/"
+
+	#Get Orthologs
+	alignment.file <- paste0(acc,"_alignment.fasta")
+	if (!file.exists(alignment.file)) {
+		ref.url <- paste0(uniref90.base,acc,".list")
+		htr <- GET(ref.url)
+		if (http_status(htr)$category != "Success") {
+			stop("Unable to access Uniref!\n",http_status(htr)$message)
+		}
+		xrefs <- strsplit(content(htr,"text",encoding="UTF-8"),"\n")[[1]]
+		cat("Retrieving sequences...")
+		fastas <- lapply(xrefs,function(xref) {
+			Sys.sleep(0.5)
+			cat(".")
+			if (grepl("^UPI",xref)) {
+				url <- paste0(uniparc.base,xref,".fasta")
+			} else {
+				url <- paste0(uniprot.base,xref,".fasta")
+			}
+			htr <- GET(url)
+			if (http_status(htr)$category != "Success") {
+				stop("Unable to access Uniref!\n",http_status(htr)$message)
+			}
+			strsplit(content(htr, "text",encoding="UTF-8"),"\n")[[1]]
+		})
+		cat("done\n")
+		multifasta <- do.call(c,fastas)
+
+		#export to 
+		fasta.file <- paste0(acc,"_orthologs.fasta")
+		con <- file(fasta.file,open="w")
+		writeLines(multifasta,con)
+		close(con)
+
+		#Run ClustalOmega on the sequences
+		cat("Aligning sequences...")
+		retVal <- system(paste(
+			"clustalo -i",fasta.file,"-o",alignment.file
+		),wait=TRUE)
+		if (retVal != 0) stop("ClustalOmega failed!")
+	} else cat("Using archived alignment.\n")
+
+	# title.is <- which(grepl("^>",alignment.lines))
+	# end.is <- c(title.is[-1]-1,length(alignment.lines))
+	# alignment.rows <- mapply(function(s,e) paste(alignment.lines[s:e],collapse=""),s=title.is+1,e=end.is)
+	# names(alignment.rows) <- xrefs
+
+	amas <- new.amasLite()
+	conservation <- amas$run(alignment.file)
+
+	return(conservation)
+}
+
+#https://www.uniprot.org/uniparc/UPI0006D932F4.fasta
+# https://www.uniprot.org/uniref/UniRef50_P63279.list
