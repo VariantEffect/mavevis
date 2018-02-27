@@ -1,4 +1,3 @@
-suppressMessages(library("gdata"))
 
 
 #' Create new Structure object
@@ -22,6 +21,7 @@ suppressMessages(library("gdata"))
 #' @return a PDB structure object
 #' @export
 new.structure <- function(pdb.file) {
+	suppressMessages(library("gdata"))
 
 	.pdb.file <- pdb.file
 

@@ -1,7 +1,4 @@
 options(stringsAsFactors=FALSE)
-
-library("httr")
-suppressMessages(library("gdata"))
 # source("lib/libpdb.R")
 # source("lib/cliargs.R")
 # source("lib/trackdrawer.R")
@@ -28,6 +25,9 @@ suppressMessages(library("gdata"))
 #' }
 #' @export
 query.pdb <- function(pdb.acc,pdb.file=paste0(pdb.acc,".pdb")) {
+
+	library("httr")
+
 	pdb.url <- paste0("https://files.rcsb.org/download/",pdb.acc,".pdb")
 	htr <- GET(pdb.url)
 	if (http_status(htr)$category == "Success") {
@@ -52,6 +52,7 @@ query.pdb <- function(pdb.acc,pdb.file=paste0(pdb.acc,".pdb")) {
 #' }
 #' @export
 run.sasa <- function(pdb.file) {
+	suppressMessages(library("gdata"))
 	widths <- c(
 		type=3,res=4,chain=2,pos=4,all.abs=9,all.rel=6,side.abs=7,side.rel=6,
 		main.abs=7,main.rel=6,nonpolar.abs=7,nonpolar.rel=6,polar.abs=7,polar.rel=6
@@ -79,6 +80,7 @@ run.sasa <- function(pdb.file) {
 #' }
 #' @export
 run.dssp <- function(pdb.file) {
+	suppressMessages(library("gdata"))
 	cols <- c(num=5,residue=5,chain=2,aa=3,struc=3,struc.flags=7,
 		bp1=5,bp2=4,acc=4,no1=12,on1=11,no2=11,on2=11,tco=8,
 		kappa=6,alpha=6,phi=6,psi=6,x.ca=7,y.ca=7,z.ca=7)
@@ -157,7 +159,8 @@ subcomplex.combos <- function(pdb.file,chain.sets) {
 #' }
 #' @export
 calc.strucfeats <- function(pdb.acc,main.chain) {
-
+	
+	library("httr")
 	set_config(config(ssl_verifypeer = 0L))
 
 	cat("Querying PDB...\n")

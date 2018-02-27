@@ -1,7 +1,3 @@
-library("rapimave")
-library("hgvsParseR")
-library("yogitools")
-library("hash")
 
 # source("lib/trackdrawer.R")
 # source("lib/genophenogram.R")
@@ -50,6 +46,11 @@ library("hash")
 dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		wt.seq=NULL,seq.offset=0,syn.med=NULL,stop.med=NULL,
 		overrideCache=FALSE,outFormats=c("pdf","png"),pngRes=100) {
+	
+	library("rapimave")
+	library("hgvsParseR")
+	library("yogitools")
+	library("hash")
 
 	options(stringsAsFactors=FALSE)
 

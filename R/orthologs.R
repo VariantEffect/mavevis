@@ -1,10 +1,6 @@
 
-library("httr")
-
 # source("lib/amasLite.R")
-
 options(stringsAsFactors=FALSE)
-set_config(config(ssl_verifypeer = 0L))
 
 
 #' Find PDB structures for a Uniprot accession
@@ -28,6 +24,9 @@ set_config(config(ssl_verifypeer = 0L))
 #' }
 #' @export
 find.pdbs <- function(acc) {
+	library("httr")
+	set_config(config(ssl_verifypeer = 0L))
+
 	uniprot.base <- "https://www.uniprot.org/uniprot/"
 	pdb.header.base <- "https://files.rcsb.org/header/"
 	pdb.base <- "https://files.rcsb.org/download/"
@@ -165,6 +164,9 @@ pdb.informative <- function(pdb.table) {
 #' @return a numerical vector with the position-wise conservation.
 #' @export
 calc.conservation <- function(acc) {
+	library("httr")
+	set_config(config(ssl_verifypeer = 0L))
+
 	uniprot.base <- "https://www.uniprot.org/uniprot/"
 	uniref90.base <- "https://www.uniprot.org/uniref/UniRef90_"
 	uniparc.base <- "https://www.uniprot.org/uniparc/"
