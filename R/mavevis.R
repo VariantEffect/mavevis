@@ -253,7 +253,11 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 	sscols <- lapply(strucfeats,`[`,,"secstruc")
 	fillup.max <- max(sapply(sscols,length))
 	sscols <- lapply(sscols,function(xs) c(xs,rep(NA,fillup.max-length(xs))))
-	ss.consensus <- apply(do.call(cbind,sscols),1,function(xs) names(which.max(table(xs))))
+	if (length(sscols) > 1) {
+		ss.consensus <- apply(do.call(cbind,sscols),1,function(xs) if (!all(is.na(xs))) names(which.max(table(xs))) else NA)
+	} else {
+		ss.consensus <- sscols[[1]]
+	}
 
 	accols <- lapply(strucfeats,`[`,,"all.rel")
 	fillup.max <- max(sapply(sscols,length))
