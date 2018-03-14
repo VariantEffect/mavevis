@@ -10,3 +10,4 @@ LazyData: true
 Imports: rapimave, hgvsParseR, yogitools, httr, gdata, hash
 Suggests: testthat
 RoxygenNote: 6.0.1
+Remotes: github::jweile/rapimave, github::jweile/hgvsParseR, github::jweile/yogitools
