@@ -163,13 +163,15 @@ calc.strucfeats <- function(pdb.acc,main.chain) {
 	library("httr")
 	set_config(config(ssl_verifypeer = 0L))
 
-	cat("Querying PDB...\n")
 	#set up cache file for structure
-	pdb.file <- paste0(pdb.acc,".pdb")
+	pdb.file <- getCacheFile(paste0(pdb.acc,".pdb"))
 	# pdb.file <- tempfile(fileext=".pdb")
 
 	if (!file.exists(pdb.file)) {
+		cat("Querying PDB...\n")
 		query.pdb(pdb.acc,pdb.file)
+	} else {
+		cat("Using cached PDB file...\n")
 	}
 	cat("Parsing PDB file...\n")
 

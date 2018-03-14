@@ -20,3 +20,7 @@ RUN wget https://freesasa.github.io/freesasa-2.0.2.tar.gz &&\
 
 #install R packages
 RUN Rscript installDependencies.R
+
+# setup caching location for mavevis
+RUN mkdir -p /cache/
+ENV MAVECACHE /cache/

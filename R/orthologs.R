@@ -31,7 +31,7 @@ find.pdbs <- function(acc) {
 	pdb.header.base <- "https://files.rcsb.org/header/"
 	pdb.base <- "https://files.rcsb.org/download/"
 
-	table.file <- paste0(acc,"_pdbs.csv")
+	table.file <- getCacheFile(paste0(acc,"_pdbs.csv"))
 
 	if (!file.exists(table.file)) {
 		#Get PDB XRefs
@@ -172,7 +172,7 @@ calc.conservation <- function(acc) {
 	uniparc.base <- "https://www.uniprot.org/uniparc/"
 
 	#Get Orthologs
-	alignment.file <- paste0(acc,"_alignment.fasta")
+	alignment.file <- getCacheFile(paste0(acc,"_alignment.fasta"))
 	if (!file.exists(alignment.file)) {
 		ref.url <- paste0(uniref90.base,acc,".list")
 		htr <- GET(ref.url)

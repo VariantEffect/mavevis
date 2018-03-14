@@ -12,7 +12,7 @@ test_that("find PDBs HTTP request",{
 
 	expect_gt(nrow(result),1)
 
-	expect_true(file.exists("P63279_pdbs.csv"))
+	expect_true(file.exists(paste0(Sys.getenv("HOME"),"/.mavecache/P63279_pdbs.csv")))
 
 })
 
@@ -34,7 +34,9 @@ test_that("informative PDB selection works",{
 
 test_that("find PDBs cache recovery",{
 		
-	expect_true(file.exists("P63279_pdbs.csv"))
+	cacheFile <- paste0(Sys.getenv("HOME"),"/.mavecache/P63279_pdbs.csv")
+
+	expect_true(file.exists(cacheFile))
 
 	result <- find.pdbs("P63279")
 
@@ -42,7 +44,7 @@ test_that("find PDBs cache recovery",{
 
 	expect_gt(nrow(result),1)
 
-	file.remove("P63279_pdbs.csv")
+	file.remove(cacheFile)
 
 })
 
@@ -66,7 +68,7 @@ test_that("calcConservation works",{
 
 	expect_length(cons,158)
 
-	expect_true(file.exists("P63279_alignment.fasta"))
+	expect_true(file.exists(paste0(Sys.getenv("HOME"),"/.mavecache/P63279_alignment.fasta")))
 
 })
 
@@ -77,8 +79,8 @@ test_that("calcConservation cache retrieval works",{
 
 	expect_length(cons,158)
 
-	file.remove("P63279_alignment.fasta")
-	file.remove("P63279_orthologs.fasta")
+	file.remove(paste0(Sys.getenv("HOME"),"/.mavecache/P63279_alignment.fasta"))
+	file.remove(paste0(Sys.getenv("HOME"),"/.mavecache/P63279_orthologs.fasta"))
 
 
 })

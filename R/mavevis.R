@@ -4,6 +4,33 @@
 # source("lib/calcStrucFeats.R")
 # source("lib/orthologs.R")
 
+
+#' Find cache file location by name
+#' 
+#' Finds the location for a cache file. The file does not necessary need to exist yet,
+#' as this function is meant to be used determine to a location for both storage and retrieval.
+#' 
+#' Depending on the execution context, the storage location may differ. The cache location can 
+#' be controlled with the environment variable \code{$MAVECACHE}. This will be made use of within
+#' the mavevis server docker container. If the variable is not set, a directory ".mavecache/"
+#' will be created in the user's home directory to be used as the storage location.
+#' 
+#' @param name the name of the file, e.g. "P12456_alignment.fasta"
+#' @return the full path to the file
+#' @examples
+#' file <- getCacheFile("P12345_alignment.fasta")
+#' 
+getCacheFile <- function(name) {
+	cache.loc <- Sys.getenv("MAVECACHE",unset=NA)
+	if (is.na(cache.loc)) {
+		cache.loc <- paste0(Sys.getenv("HOME"),"/.mavecache/")
+	}
+	if (!file.exists(cache.loc)) {
+		dir.create(cache.loc,showWarnings=FALSE,recursive=TRUE)
+	}
+	paste0(cache.loc,name)
+}
+
 #' Draw dashboard for scoreset
 #' 
 #' Retrieves a scoreset entry from MaveDB and renders a dashboard plot consisting
@@ -154,7 +181,7 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 	wt.aa <- sapply(1:nchar(aa.seq),function(i)substr(aa.seq,i,i))
 
 
-	cacheFile <- paste0(ssid,".csv")
+	cacheFile <- getCacheFile(paste0(ssid,".csv"))
 	if (!file.exists(cacheFile) || overrideCache) {
 		cat("Querying scoreset from MaveDB...\n")
 		#New instance of R-API for MaveDB
