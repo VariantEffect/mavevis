@@ -112,16 +112,20 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	###########
 	op <- par(cex=.6,mar=c(5,3,0,4)+.1)
 	plot(NA,type="n",xlim=c(-1,1),ylim=c(0,13),axes=FALSE,xlab="",ylab="")
-	rect(0,0:11,1,1:12,col=c(colRamp[1:6],colRamp[6:11]),border=NA)
-	rect(0,12,1,13,col="lightgoldenrod1",border=NA)
+	if (any(score > syn.med, na.rm=TRUE)) {#with red colors
+		rect(0,0:11,1,1:12,col=c(colRamp[1:6],colRamp[6:11]),border=NA)
+		rect(0,12,1,13,col="lightgoldenrod1",border=NA)
+		axis(4,at=c(.5,6,11.5,12.5),labels=c("stop","syn","hyper","wt"))
+	} else {#without red colors
+		rect(0,seq(0,10,2),1,seq(2,12,2),col=colRamp[1:6],border=NA)
+		rect(0,12,1,13,col="lightgoldenrod1",border=NA)
+		axis(4,at=c(1,11,12.5),labels=c("stop","syn","wt"))
+	}
+	mtext("score",side=4,line=2,las=3,cex=0.7)
 	if(!is.null(error)) {
 		es <- seq(0,0.5,length.out=13)/2
 		ys <- 0:12+0.5
 		segments(-.5-es,ys-es,-.5+es,ys+es)
-	}
-	axis(4,at=c(.5,6,11.5,12.5),labels=c("stop","syn","hyper","wt"))
-	mtext("score",side=4,line=2,las=3,cex=0.7)
-	if (!is.null(error)){
 		me <- syn.med-stop.med
 		axis(2,at=c(.5,6.5,12.5),labels=signif(c(0,me/2,me),2))
 		mtext("stderr",side=2,line=2,las=3,cex=0.7)
