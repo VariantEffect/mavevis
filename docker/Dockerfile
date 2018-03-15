@@ -24,3 +24,7 @@ RUN Rscript installDependencies.R
 # setup caching location for mavevis
 RUN mkdir -p /cache/
 ENV MAVECACHE /cache/
+
+#grant AppArmor permissions to cache directory
+RUN printf "\n/cache rw,\n/cache/** rw,">>/etc/apparmor.d/opencpu.d/custom &&\
+	service apparmor restart

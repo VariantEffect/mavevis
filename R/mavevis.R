@@ -17,6 +17,7 @@
 #' 
 #' @param name the name of the file, e.g. "P12456_alignment.fasta"
 #' @return the full path to the file
+#' @export
 #' @examples
 #' file <- getCacheFile("P12345_alignment.fasta")
 #' 
@@ -59,6 +60,7 @@ getCacheFile <- function(name) {
 #' @param outFormats a vector containing any of the following strings: x11, pdf, png .
 #'    Using two or all three at once is allowed and will result in multiple output files.
 #' @param pngRes Resolution of PNG output in DPI. Defaults to 100.
+#' @param outID a name for the output file to which the plot will be written. Defaults to ssid.
 #' @return NULL
 #' @export
 #' @examples
@@ -72,7 +74,7 @@ getCacheFile <- function(name) {
 #' }
 dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		wt.seq=NULL,seq.offset=0,syn.med=NULL,stop.med=NULL,
-		overrideCache=FALSE,outFormats=c("pdf","png"),pngRes=100) {
+		overrideCache=FALSE,outFormats=c("pdf","png"),pngRes=100,outID=ssid) {
 	
 	library("rapimave")
 	library("hgvsParseR")
@@ -138,7 +140,7 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 
 	# stop.med <- as.numeric(getArg("stopMed",default=NULL))
 	if (length(stop.med > 0) && is.na(stop.med)) {
-		stop("Parameter 'stopMed' must be a numerical value!")
+		stop("Parameter 'stopMed' must be a numerical value! Found:",stop.med," (",class(stop.med),")")
 	}
 
 	# outFormats <- strsplit(getArg("outFormats",default="pdf,png"),",")[[1]]
@@ -319,8 +321,8 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		cat(".")
 		switch(outFormat,
 			x11=x11(,width=img.width,height=img.height),
-			pdf=pdf(paste0(ssid,".pdf"),width=img.width,height=img.height),
-			png=png(paste0(ssid,".png"),width=img.width*pngRes,
+			pdf=pdf(getCacheFile(paste0(outID,".pdf")),width=img.width,height=img.height),
+			png=png(getCacheFile(paste0(outID,".png")),width=img.width*pngRes,
 				height=img.height*pngRes,res=pngRes)
 		)
 		genophenogram(wt.aa=wt.aa,pos=sm.mut$start,mut.aa=sm.mut$variant,
