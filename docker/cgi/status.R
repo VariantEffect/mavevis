@@ -8,7 +8,7 @@ log.dir <- Sys.getenv("MAVEVIS_LOGS",unset="/var/www/mavevis/logs/")
 setMessageSink(paste0(log.dir,"exec.log"))
 
 #Caching directory
-cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/mavevis/cache/"))
+cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/mavevis/cache/")
 
 #read data from HTTP POST request
 postdata <- readPOST()
