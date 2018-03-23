@@ -22,7 +22,7 @@
 #' file <- getCacheFile("P12345_alignment.fasta")
 #' 
 getCacheFile <- function(name) {
-	cache.loc <- Sys.getenv("MAVECACHE",unset=NA)
+	cache.loc <- Sys.getenv("MAVEVIS_CACHE",unset=NA)
 	if (is.na(cache.loc)) {
 		cache.loc <- paste0(Sys.getenv("HOME"),"/.mavecache/")
 	}
@@ -321,8 +321,8 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		cat(".")
 		switch(outFormat,
 			x11=x11(,width=img.width,height=img.height),
-			pdf=pdf(getCacheFile(paste0(outID,".pdf")),width=img.width,height=img.height),
-			png=png(getCacheFile(paste0(outID,".png")),width=img.width*pngRes,
+			pdf=pdf(getCacheFile(paste0("result_",outID,".pdf")),width=img.width,height=img.height),
+			png=png(getCacheFile(paste0("result_",outID,".png")),width=img.width*pngRes,
 				height=img.height*pngRes,res=pngRes)
 		)
 		genophenogram(wt.aa=wt.aa,pos=sm.mut$start,mut.aa=sm.mut$variant,

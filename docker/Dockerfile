@@ -1,14 +1,19 @@
+# This file defines a docker image encapsulating a CGI-enabled apache server
+# with a RestFul service and web-app for MaveVis with all its dependencies.
+#
+# To build this image use: $docker build -t mavevis .
+# To run the container: $docker run -t -p 80:80 --name mavevis mavevis
+
 FROM ubuntu:16.04
 
 #Force apt-get to skip confirmation questions
 ENV DEBIAN_FRONTEND noninteractive
 
 #Install apache httpd and enable CGI
-RUN \
-  apt update && \
-  apt -y dist-upgrade && \
-  apt install -y apache2 && \
-  a2enmod cgi
+RUN apt update && \
+    apt -y dist-upgrade && \
+    apt install -y apache2 && \
+    a2enmod cgi
 
 # Apache ports for HTTP and HTTPS
 EXPOSE 80
@@ -21,18 +26,18 @@ WORKDIR /setup
 
 #install dependencies for app
 RUN apt update && \
-  apt install -y r-base wget libcurl4-openssl-dev libssl-dev \
-  libxml2 libxml2-dev libjson-c-dev dssp clustalo
+    apt install -y r-base wget libcurl4-openssl-dev libssl-dev \
+    libxml2 libxml2-dev libjson-c-dev dssp clustalo
 
 #download, build and install FreeSASA, then cleanup temp files
 RUN wget https://github.com/mittinatten/freesasa/releases/download/2.0.2/freesasa-2.0.2.tar.gz &&\
-	tar xzf freesasa-2.0.2.tar.gz &&\
-	cd freesasa-2.0.2 &&\
-	./configure --disable-xml &&\
-	make &&\
-	make install&&\
-  cd .. &&\
-  rm -r freesasa*
+    tar xzf freesasa-2.0.2.tar.gz &&\
+    cd freesasa-2.0.2 &&\
+    ./configure --disable-xml &&\
+    make &&\
+    make install&&\
+    cd .. &&\
+    rm -r freesasa*
 
 #install R packages
 COPY installDependencies.R /setup/
@@ -41,13 +46,22 @@ RUN Rscript installDependencies.R
 
 # Create mavevis' directory structure and grant access to apache
 RUN mkdir -p /var/www/mavevis/httpdocs &&\
-  mkdir -p /var/www/mavevis/logs &&\
-  chmod 777 /var/www/mavevis/logs &&\
-  mkdir -p /cache/ && chmod 777 /cache/
+    mkdir -p /var/www/mavevis/logs &&\
+    chmod 777 /var/www/mavevis/logs &&\
+    mkdir -p /var/www/mavevis/cache/ &&\
+    chmod 777 /var/www/mavevis/cache/
+
+#set environment variables so the app knows were to write/read data
+ENV MAVEVIS_CACHE /var/www/mavevis/cache/
+ENV MAVEVIS_LOGS /var/www/mavevis/logs/
+RUN printf "export MAVEVIS_CACHE=/var/www/mavevis/cache/\n">>/etc/apache2/envvars &&\
+    printf "export MAVEVIS_LOGS=/var/www/mavevis/logs/\n">>/etc/apache2/envvars
 
 #Move CGI scripts to staging location and grant access to apache
 ADD cgi/ /var/www/html/mavevis/httpdocs/
-RUN chmod a+rx /var/www/html/mavevis/httpdocs/*.R
+COPY mavevis_launcher.R /var/www/html/mavevis/
+RUN chmod a+rx /var/www/html/mavevis/httpdocs/*.R &&\
+    chmod a+rx /var/www/html/mavevis/*.R
 
 #Introduce apache configuration file for app and enable it
 COPY mavevis.conf /etc/apache2/sites-available/
@@ -57,7 +71,7 @@ RUN a2dissite 000-default.conf && a2ensite mavevis
 RUN \
   ln -sf /proc/self/fd/1 /var/log/apache2/access.log && \
   ln -sf /proc/self/fd/1 /var/log/apache2/error.log && \
-  ln -sf /proc/self/fd/1 /var/www/mavevis/logs/exec.log && \
+  # ln -sf /proc/self/fd/1 /var/www/mavevis/logs/exec.log && \
   ln -sf /proc/self/fd/1 /var/www/mavevis/logs/error.log && \
   ln -sf /proc/self/fd/1 /var/www/mavevis/logs/access.log
 

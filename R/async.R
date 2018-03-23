@@ -70,7 +70,7 @@ dashboard.async.run <- function(ssid,uniprotId,pdbs,mainChains,
 	logfile <- getCacheFile(paste0(jobID,".log"))
 
 	#prep the launch command
-	cmd <- paste0("Rscript ",launcher.loc," scoresetID=",ssid,
+	cmd <- paste0("nohup Rscript ",launcher.loc," scoresetID=",ssid,
 		" uniprot=",uniprotId," pdb=",paste(pdbs,collapse=","),
 		" mainChain=",paste(mainChains,collapse=",")," overrideCache=",overrideCache,
 		optionalArg("WT",wt.seq),
@@ -79,14 +79,16 @@ dashboard.async.run <- function(ssid,uniprotId,pdbs,mainChains,
 		optionalArg("stopMed",stop.med),
 		optionalArg("outFormats",outFormats),
 		optionalArg("pngRes",pngRes),
-		optionalArg("job",jobID),
-		" >",logfile," 2>&1"
+		optionalArg("job",jobID)#,
+		#" >",logfile," 2>&1"
 	)
 
 	cat(cmd)
 
 	#launch process in background
 	system(cmd,wait=FALSE)
+
+	Sys.sleep(10)
 
 	return(jobID)
 }

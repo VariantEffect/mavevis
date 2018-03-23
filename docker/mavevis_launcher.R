@@ -5,10 +5,12 @@ library("yogitools")
 
 #get jobID and setup log file
 jobId <- getArg("job",required=TRUE)
-# logfile <- getCacheFile(paste0(jobId,".msg"))
-# con <- file(logfile,open="wt")
-# sink(con,type="message")
-# on.exit(close(con))
+
+log.dir <- Sys.getenv("MAVEVIS_CACHE",unset=paste0(Sys.getenv("HOME"),"/.mavecache/"))
+con <- file(paste0(log.dir,"progress_",jobId,".log"))
+sink(con, append=TRUE)
+sink(con, append=TRUE, type="message")
+
 
 #make sure NULL is not interpreted as string
 keepNull <- function(x) if (is.null(x) || x=="NULL") NULL else if (is.na(x)) NA  else x
@@ -31,6 +33,21 @@ stop.med <- as.numeric(keepNull(getArg("stopMed",default=NULL)))
 outFormats <- strsplit(keepNull(getArg("outFormats",default="pdf,png")),",")[[1]]
 pngRes <- as.numeric(keepNull(getArg("pngRes",default=100)))
 
+cat(
+	"Starting job",jobId,"with parameters:\n",
+	"ssid =",ssid,"\n",
+	"uniprotId =",uniprotId,"\n",
+	"pdbs =",pdbs,"\n",
+	"mainChains =",mainChains,"\n",
+	"wt.seq =",wt.seq,"\n",
+	"seq.offset =",seq.offset,"\n",
+	"syn.med =",syn.med,"\n",
+	"stop.med =",stop.med,"\n",
+	"overrideCache =",overrideCache,"\n",
+	"outFormats =",outFormats,"\n",
+	"pngRes =",pngRes,"\n"
+)
+
 #start dashboard function
 dashboard(
 	ssid=ssid,uniprotId=uniprotId,pdbs=pdbs,mainChains=mainChains,
@@ -38,3 +55,4 @@ dashboard(
 	overrideCache=overrideCache,outFormats=outFormats,pngRes=pngRes,outID=jobId
 )
 
+cat("\nJob completed successfully!\n")

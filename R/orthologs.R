@@ -199,7 +199,7 @@ calc.conservation <- function(acc) {
 		multifasta <- do.call(c,fastas)
 
 		#export to 
-		fasta.file <- paste0(acc,"_orthologs.fasta")
+		fasta.file <- getCacheFile(paste0(acc,"_orthologs.fasta"))
 		con <- file(fasta.file,open="w")
 		writeLines(multifasta,con)
 		close(con)
