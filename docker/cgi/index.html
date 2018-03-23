@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Mavevis</title>
+	<link rel="stylesheet" href="style.css" type="text/css"/>
+
+</head>
+<body>
+	<h1>MaveVis</h1>
+	<form method="POST">
+		<p>MAVEDB Scoreset Identifier</p>
+		<input type="text" name="scoresetID"/>
+		<p>Uniprot Accession</p>
+		<input type="text" name="uniprot"/>
+		<p>PDB Accessions</p>
+		<input type="text" name="pdb"/>
+		<p>Primary Chains in PDB entries</p>
+		<input type="text" name="mainChain"/>
+		<p></p>
+		<details>
+			<summary>Advanced options</summary>
+			<p>Wildtype sequence</p>
+			<textarea cols=70 rows=10 name="WT"></textarea>
+			<p>Sequence start offset</p>
+			<input type="text" name="seqOffset"/>
+			<p>Median score of synonymous variants</p>
+			<input type="text" name="synMed"/>
+			<p>Median score of nonsense variants</p>
+			<input type="text" name="stopMed"/>
+			<p>Image resolution (DPI)</p>
+			<input type="number" name="pngRes" min=100 max=800 step=10 value=200 size=3/>
+			<p></p>
+			<input id="chk" type="checkbox" name="overrideCache" value="TRUE">
+			<label for="chk">Override cache</label>
+		</details>
+		<p></p>
+		<input type="submit" value="Submit">
+	</form>
+</body>
+</html>

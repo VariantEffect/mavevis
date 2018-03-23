@@ -1,0 +1,27 @@
+body {
+
+	width: 1200px;
+	padding: 20px 50px 50px 50px;
+	font-family: "Helvetica Neue", sans-serif;
+}
+
+textarea {
+  font-family: monospace;
+  padding:5px;
+}
+
+details {
+	border: 1px dotted #aaaaaa;
+	padding: 10px;
+	margin-bottom:5px;
+	width:600px;
+}
+summary {
+	/*font-weight: bold;*/
+	cursor:pointer;
+	/*color: darkblue;*/
+}
+summary:hover{
+	text-decoration: underline;
+}
+
