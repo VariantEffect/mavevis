@@ -26,24 +26,12 @@ if (!all(c("scoresetID","uniprot","pdb","mainChain") %in% names(postdata))) {
 #create a new job ID
 jobID <- makeUUID()
 
-# #Create an input file with the provided parameters
-# #This will be picked up by the daemon, who will actually launch the job.
-# inDataFile <- paste0(cache.dir,"input_",jobID,".json")
-# con <- file(inDataFile,open="w")
-# writeChar(toJSON(c(postdata,jobID=jobID)))
-# close(con)
-
-args <- sapply(names(postdata),function(label) {
-	values <- postdata[[label]]
-	if (!is.null(values)) {
-		paste0(label,"=",paste(values,collapse=","))
-	} else ""
-})
-cmd <- paste0("Rscript ",launcher.loc," ",
-	paste(args,collapse=" ")," job=",jobID
-)
-system(cmd,wait=FALSE)
-
+#Create an input file with the provided parameters
+#This will be picked up by the daemon, who will actually launch the job.
+inDataFile <- paste0(cache.dir,"input_",jobID,".json")
+con <- file(inDataFile,open="w")
+writeChar(toJSON(c(postdata,job=jobID)),con)
+close(con)
 
 # #respond to HTTP request with the jobID
-respondJSON(toJSON(list(jobID=jobID,cmd=cmd)))
+respondJSON(toJSON(list(jobID=jobID)))

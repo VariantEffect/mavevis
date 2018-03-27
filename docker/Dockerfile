@@ -27,7 +27,7 @@ WORKDIR /setup
 #install dependencies for app
 RUN apt update && \
     apt install -y r-base wget libcurl4-openssl-dev libssl-dev \
-    libxml2 libxml2-dev libjson-c-dev dssp clustalo
+    libxml2 libxml2-dev libjson-c-dev dssp clustalo 
 
 #download, build and install FreeSASA, then cleanup temp files
 RUN wget https://github.com/mittinatten/freesasa/releases/download/2.0.2/freesasa-2.0.2.tar.gz &&\
@@ -75,5 +75,8 @@ RUN \
   ln -sf /proc/self/fd/1 /var/www/mavevis/logs/error.log && \
   ln -sf /proc/self/fd/1 /var/www/mavevis/logs/access.log
 
-#start apache
-CMD apachectl -DFOREGROUND
+#setup startup script and daemon
+COPY startup.sh daemon.R /setup/
+
+#startup script starts apache and daemon
+CMD bash /setup/startup.sh
