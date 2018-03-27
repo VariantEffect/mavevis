@@ -3,13 +3,17 @@
 <head>
 	<title>MaveDB visualizer</title>
 	<link rel="stylesheet" href="style.css" type="text/css"/>
+	<script src="jquery-3.3.1.min.js"></script>
+	<script src="mavevis.js"></script>
 </head>
 <body>
 	<!-- <h1>MaveDB visualizer</h1> -->
-	<p class="header"><img src="logo.png"> &nbsp;A visualization tool for MaveDB</p>
+	<p class="header">
+		<img src="logo.png" alt="MaveVis"> &nbsp;A visualization tool for MaveDB
+	</p>
 	<div class="main">
 		<div class="box" id="controlpanel">
-			<form method="POST">
+			<form onsubmit="return false;">
 				<p><a title="The MaveDB score-set identifier">
 					<label class="left" for="ssid">Score-set ID</label>
 					<input id="ssid" type="text" name="scoresetID" placeholder="SCS000002A.1"/>
@@ -29,7 +33,7 @@
 				<details>
 					<summary>Advanced options</summary>
 					<p>
-						<textarea cols=70 rows=10 name="WT" placeholder="Custom wildtype sequence"></textarea>
+						<textarea cols=70 rows=10 name="WT" id="wt" placeholder="Custom wildtype sequence"></textarea>
 					</p>
 					<p><a title="Offset of the mapped area from the sequence start">
 						<label class="left" for="seqOffset">Sequence offset</label>
@@ -44,12 +48,12 @@
 					<p><a title="Auto: Use median of nonsense variant scores">
 						<label class="left" for="stopMed">Null-like score</label>
 						<input id="stopMed" type="number" name="stopMed" value="0" step="0.01" disabled/>
-						<input type="checkbox" id="synAuto" value="TRUE" checked/>
+						<input type="checkbox" id="stopAuto" value="TRUE" checked/>
 						<label for="stopAuto">auto</label>
 					</a></p>
 					<p>
 						<label class="left" for="pngRes">Image resolution</label> 
-						<input id="pngRes" type="number" name="pngRes" min="100" max="800" step="10" value="200"/>
+						<input id="pngRes" type="number" name="pngRes" min="50" max="800" step="10" value="100"/>
 						<label for="pngRes">DPI</label>
 					</p>
 					<p><a title="Recalculate all assets instead of using cached data">
@@ -58,13 +62,13 @@
 					</a></p>
 				</details>
 				<p></p>
-				<input type="submit" value="Apply"/>
+				<input id="submit" type="submit" value="Apply"/>
 			</form>
 		</div>
 		<div id="right">
 			<div class="box" id="outputpanel">
-				<div class="passepartout">
-					Figure goes here
+				<div class="passepartout" id="imagepanel">
+					
 				</div>
 			</div>
 			<div class="box" id="consolepanel">
@@ -79,13 +83,13 @@ Ready.</pre><span class="blink" style="color: white;">&#9646;</span>
 	<div class="footer">
 		Copyright &copy; 2018 Jochen Weile, <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GPLv3.0</a> 
 	</div>
-	<script type="text/javascript">
+	<!--<script type="text/javascript">
 		document.getElementById('synAuto').onchange = function() {
 		    document.getElementById('synMed').disabled = this.checked;
 		};
 		document.getElementById('stopAuto').onchange = function() {
 		    document.getElementById('stopMed').disabled = this.checked;
 		};
-	</script>
+	</script>-->
 </body>
 </html>

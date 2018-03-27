@@ -61,7 +61,9 @@ RUN printf "export MAVEVIS_CACHE=/var/www/mavevis/cache/\n">>/etc/apache2/envvar
 ADD cgi/ /var/www/html/mavevis/httpdocs/
 COPY mavevis_launcher.R /var/www/html/mavevis/
 RUN chmod a+rx /var/www/html/mavevis/httpdocs/*.R &&\
-    chmod a+rx /var/www/html/mavevis/*.R
+    chmod a+rx /var/www/html/mavevis/*.R &&\
+    mkdir /var/www/html/mavevis/httpdocs/results/ &&\
+    chmod 777 /var/www/html/mavevis/httpdocs/results/
 
 #Introduce apache configuration file for app and enable it
 COPY mavevis.conf /etc/apache2/sites-available/

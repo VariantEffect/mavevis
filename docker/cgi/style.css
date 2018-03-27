@@ -29,7 +29,7 @@ label.left {
 .main {
 	width:100%;
 	display: flex;
-	min-height: 800px;
+	max-height: 800px;
 }
 
 .box {
@@ -38,7 +38,7 @@ label.left {
 	border: 2px outset #dddddd;
 	box-shadow: 10px 10px 10px #aaaaaa;
 	margin-right: 20px;
-	margin-bottom: 50px;
+	margin-bottom: 30px;
 }
 
 .passepartout {
@@ -66,6 +66,8 @@ label.left {
 #outputpanel {
 	text-align: center;
 	flex: 1;
+	min-height: 100px;
+	max-height: 600px;
 }
 
 #consolepanel {
@@ -122,8 +124,18 @@ input[type=number]{
   animation: blinker 1s linear infinite;
 }
 
+.highlight {
+  animation: highlight 1s linear infinite;
+}
+
 @keyframes blinker {
   50% {
     opacity: 0;
+  }
+}
+
+@keyframes highlight {
+  50% {
+    box-shadow: 0 0 6px red;
   }
 }

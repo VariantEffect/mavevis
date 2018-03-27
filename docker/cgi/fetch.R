@@ -10,6 +10,8 @@ setMessageSink(paste0(log.dir,"exec.log"))
 #Caching directory
 cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/mavevis/cache/")
 
+staging.dir <- "/var/www/html/mavevis/httpdocs/results/"
+
 #read data from HTTP POST request
 postdata <- readPOST()
 
@@ -30,22 +32,42 @@ if (!("format" %in% names(postdata))) {
 	quit(save="no",status=0)
 }
 
+if (!("output" %in% names(postdata))) {
+	output <- "direct"
+} else {
+	output <- postdata$output
+}
+
 #return the file contents corresponding to the requested output format
 switch(
 	postdata$format,
 	png={
-		pngFile <- paste0(cache.dir,"result_",jobID,".png")
+		fname <- paste0("result_",jobID,".png")
+		pngFile <- paste0(cache.dir,fname)
 		if (file.exists(pngFile)) {
-			respondPNG(pngFile)
+			switch(output,
+				url={
+					file.copy(pngFile,staging.dir)
+					respondTEXT(paste0("results/",fname))
+				},
+				respondPNG(pngFile)
+			)
 		} else {
 			respond404("No PNG output exists for this job!")
 			quit(save="no",status=0)
 		}
 	},
 	pdf={
-		pdfFile <- paste0(cache.dir,"result_",jobID,".pdf")
+		fname <- paste0("result_",jobID,".pdf")
+		pdfFile <- paste0(cache.dir,fname)
 		if (file.exists(pdfFile)) {
-			respondPDF(pdfFile)
+			switch(output,
+				url={
+					file.copy(pdfFile,staging.dir)
+					respondTEXT(paste0("results/",fname))
+				},
+				respondPDF(pdfFile)
+			)
 		} else {
 			respond404("No PDF output exists for this job!")
 			quit(save="no",status=0)
