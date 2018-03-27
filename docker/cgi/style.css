@@ -1,27 +1,129 @@
 body {
-
-	width: 1200px;
+	/*min-width: 1000px;
+	max-width: 1200px;*/
+	font-family: LiberationSans, Arial, sans-serif;
 	padding: 20px 50px 50px 50px;
-	font-family: "Helvetica Neue", sans-serif;
+	font-size: 10pt;
+	margin-bottom: 100px;
+	background: url(
+		data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAALklEQVQIW2P8DwQMSODOnTsMjMiCIAEVFRWEIEwApAmsElkALHj79u3/IC3IAABt3x+GdGufqQAAAABJRU5ErkJggg==
+	);
+}
+
+h1 {
+	font-family: FreeSans, Arial, sans-serif;
+	font-size: 24pt;
+}
+
+label.left {
+	width: 100px;
+	display: inline-block;
+	text-align: right;
+}
+
+.header {
+	margin-bottom: 20px;
+	font-style: italic;
+}
+
+.main {
+	width:100%;
+	display: flex;
+	min-height: 800px;
+}
+
+.box {
+	padding:10px;
+	background-color:  #eff0f1;
+	border: 2px outset #dddddd;
+	box-shadow: 10px 10px 10px #aaaaaa;
+	margin-right: 20px;
+	margin-bottom: 50px;
+}
+
+.passepartout {
+	/*text-align: center;*/
+	overflow: scroll;
+	border: 2px inset #dddddd;
+	height: calc(100% - 40px);
+	background: white;
+	margin: 10px;
+	padding: 10px;
+}
+
+#controlpanel {
+	float: left;
+	width:300px;
+}
+
+#right {
+	width:100%;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+#outputpanel {
+	text-align: center;
+	flex: 1;
+}
+
+#consolepanel {
+	height: 200px;
+}
+
+#console {
+	margin: 0;
+	font-size: 8pt;
+	color: white;
+	font-family: monospace;
 }
 
 textarea {
   font-family: monospace;
   padding:5px;
+  max-width:260px;
 }
 
 details {
 	border: 1px dotted #aaaaaa;
 	padding: 10px;
 	margin-bottom:5px;
-	width:600px;
+	width:280px;
+	padding:10px;
 }
 summary {
-	/*font-weight: bold;*/
 	cursor:pointer;
-	/*color: darkblue;*/
 }
 summary:hover{
 	text-decoration: underline;
 }
 
+input,textarea {
+	margin: 5px;
+}
+
+input[type=number]{
+    width: 40px;
+} 
+
+.footer { 
+	position: fixed;
+	padding: 10px;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+	color: gray;
+	background-color: rgba(255,255,255,0.8)
+}
+
+.blink {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
