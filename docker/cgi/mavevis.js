@@ -14,59 +14,7 @@ $(document).ready(function(){
 		console.parent().scrollTop(console.scrollHeight);
 	}
 
-	function pollStatus() {
-		$.post("status.R",
-		{
-			jobID: currJobID
-		})
-		.done(function(data) {
-			replaceConsole(data)
-			if (data.match(/Done!/)) {
-				//if results are ready, show them
-				showResult()
-			} else if (data.match(/Error/)) {
-				//if results are ready, show them
-				alert("The job encountered an error!")
-			} else {
-				//otherwise call poll status again after 1000 ms
-				setTimeout(pollStatus,1000)
-			}
-		})
-		.fail(function(xhr, status, error) {
-			alert(error);
-		});
-	}
-
-	function showResult() {
-		$.post("fetch.R",
-		{
-			jobID: currJobID,
-			format: "png",
-			output: "url"
-		})
-		.done(function(url) {
-			$("#imagepanel").html('<img src="'+url+'" alt="result"/>')
-		})
-		.fail(function(xhr, status, error) {
-			alert(error);
-		});
-	}
-
-	//add a highlight the field with a red background for 5sec
-	function hilightMissing(element) {
-		appendConsole(
-			"\n" + element.prop("name") +
-			" is a required input!"
-		)
-		element.addClass("highlight")
-		setTimeout(function() {
-			element.removeClass("highlight")
-		},5000)
-	}
-
-	//Submit button action
-	$("#submit").click(function() {
-
+	function submit() {
 		// Extract and pre-process form data
 		var ssid = $("#ssid").val();
 		var uniprot = $("#uniprot").val();
@@ -122,7 +70,74 @@ $(document).ready(function(){
 		.fail(function(xhr, status, error) {
 			alert(error);
 		});
-	})
+	}
+
+	function pollStatus() {
+		$.post("status.R",
+		{
+			jobID: currJobID
+		})
+		.done(function(rawdata) {
+			data = JSON.parse(rawdata);
+			replaceConsole(data.log)
+			switch(data.status) {
+				case "Done":
+					showResult();
+					break;
+				case "Error":
+					alert(data.message)
+					break;
+				case "Processing":
+					setTimeout(pollStatus,1000)
+					break;
+				default:
+
+			}
+			if (data.status === "Done") {
+				//if results are ready, show them
+				showResult()
+			} else if (data.match(/Error/)) {
+				//if results are ready, show them
+				alert("The job encountered an error!")
+			} else {
+				//otherwise call poll status again after 1000 ms
+				setTimeout(pollStatus,1000)
+			}
+		})
+		.fail(function(xhr, status, error) {
+			alert(error);
+		});
+	}
+
+	function showResult() {
+		$.post("fetch.R",
+		{
+			jobID: currJobID,
+			format: "png",
+			output: "url"
+		})
+		.done(function(url) {
+			$("#imagepanel").html('<img src="'+url+'" alt="result"/>')
+		})
+		.fail(function(xhr, status, error) {
+			alert(error);
+		});
+	}
+
+	//add a highlight the field with a red background for 5sec
+	function hilightMissing(element) {
+		appendConsole(
+			"\n" + element.prop("name") +
+			" is a required input!"
+		)
+		element.addClass("highlight")
+		setTimeout(function() {
+			element.removeClass("highlight")
+		},5000)
+	}
+
+	//Submit button action
+	$("#submit").click(submit)
 
 	$("#synAuto").change(function() {
 		$("#synMed").prop("disabled",this.checked);

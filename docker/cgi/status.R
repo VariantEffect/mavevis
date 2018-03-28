@@ -33,8 +33,21 @@ if (!file.exists(logfile)) {
 	logs <- scan(logfile,what="character",sep="\n")
 }
 
-#and respond to the HTTP request with the log contents 
-respondTEXT(paste(logs,collapse="\n"))
+error.msg <- NULL
 
-# cat("\nCache dir: ",cache.dir)
-# cat("\nLogfile: ",logfile)
+status <- if (any(grepl("Error",logs))) {
+	error.msg <- logs[which(grepl("Error",logs)):length(logs)]
+	"Error"
+} else if (any(grepl("Done!",logs))) {
+	"Done"
+} else {
+	"Processing"
+}
+
+#and respond to the HTTP request with the log contents 
+# respondTEXT(paste(logs,collapse="\n"))
+respondJSON(toJSON(list(
+	status=status,
+	log=paste(logs,collapse="\n"),
+	message=paste(error.msg,collapse="\n")
+)))
