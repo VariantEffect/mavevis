@@ -1,5 +1,16 @@
 #!/usr/bin/Rscript
 
+#########################################################################
+## mavevis_launcher.R
+##
+## This script allows execution of the mavevis dashboard() function 
+## from the command line. 
+## 
+## Usage: Rscript mavevis_launcher.R scoresetID=<ssid> uniprot=<uniprot>
+##     pdb=<pdb-ids> mainChain=<chains> [WT=<seq> | seqOffset=<num> |
+##     synMed=<num> | stopMed=<num> | PngRes=<num> | outFormats={png|pdf}]
+############################################################################
+
 library("mavevis")
 library("yogitools")
 
