@@ -41,7 +41,17 @@ label.left {
 	margin-bottom: 30px;
 }
 
-.passepartout {
+.passepartoutImg {
+	/*text-align: center;*/
+	overflow: scroll;
+	border: 2px inset #dddddd;
+	height: calc(100% - 65px);
+	background: white;
+	margin: 10px;
+	padding: 10px;
+}
+
+.passepartoutCons {
 	/*text-align: center;*/
 	overflow: scroll;
 	border: 2px inset #dddddd;
@@ -49,6 +59,7 @@ label.left {
 	background: white;
 	margin: 10px;
 	padding: 10px;
+	background-color: #444444;
 }
 
 #controlpanel {
