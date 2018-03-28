@@ -36,7 +36,8 @@ if (!file.exists(logfile)) {
 error.msg <- NULL
 
 status <- if (any(grepl("Error",logs))) {
-	error.msg <- logs[which(grepl("Error",logs)):length(logs)]
+	i <- which(grepl("Error",logs))
+	error.msg <- logs[(i+1):length(logs)]
 	"Error"
 } else if (any(grepl("Done!",logs))) {
 	"Done"
