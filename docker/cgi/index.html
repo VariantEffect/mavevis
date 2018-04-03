@@ -71,8 +71,12 @@
 					
 				</div>
 				<div>
-					<button id="pdfbutton" disabled>Download as PDF</button>
-					<button id="pngbutton" disabled>Download as PNG</button>
+					<form method="POST" action="fetch.R" target="_blank">
+						<input type="hidden" id="jobIDHolder" name="jobID" value="">
+						Download:
+						<input type="submit" id="pdfbutton" name="format" value="pdf" disabled/>
+						<input type="submit" id="pngbutton" name="format" value="png" disabled/>
+					</form>
 				</div>
 			</div>
 			<div class="box" id="consolepanel">

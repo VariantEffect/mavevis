@@ -7,6 +7,22 @@ $(document).ready(function(){
 	var currJobID = null;
 
 	/**
+	 * Registers the current jobID with all necessary fields
+	 */ 
+	function setJobID(jobID) {
+		currJobID = jobID;
+		$("#jobIDHolder").val(jobID);
+	}
+
+	/**
+	 * Turns the download buttons on or of (depending on job completion)
+	 */
+	function toggleDownload(enabled) {
+		$("#pdfbutton").prop("disabled",!enabled);
+		$("#pngbutton").prop("disabled",!enabled);
+	}
+
+	/**
 	 * Replaces the text in the console and scrolls to the bottom.
 	 */
 	function replaceConsole(text) {
@@ -37,19 +53,19 @@ $(document).ready(function(){
 
 		// Flash warnings if mandatory fields are missing
 		if (!ssid) {
-			hilightMissing($("#ssid"))
+			hilightMissing($("#ssid"));
 			return false;
 		}
 		if (!uniprot) {
-			hilightMissing($("#uniprot"))
+			hilightMissing($("#uniprot"));
 			return false;
 		}
 		if (!pdb) {
-			hilightMissing($("#pdb"))
+			hilightMissing($("#pdb"));
 			return false;
 		}
 		if (!mc) {
-			hilightMissing($("#mc"))
+			hilightMissing($("#mc"));
 			return false;
 		}
 
@@ -58,6 +74,9 @@ $(document).ready(function(){
 		var synMed = !($("#synAuto").is(':checked')) ? $("#synMed").val() : "NULL";
 		var stopMed = !($("#stopAuto").is(':checked')) ? $("#stopMed").val() : "NULL";
 		var overrideCache = $("#overrideCache").is(':checked') ? "TRUE" : "FALSE";
+
+		//disable download buttons
+		toggleDownload(false);
 
 		// Asynchronous POST request with form data
 		$.post("submit.R",
@@ -75,7 +94,7 @@ $(document).ready(function(){
 		})
 		.done(function(rawdata) {
 			data = JSON.parse(rawdata)
-			currJobID = data.jobID;
+			setJobID(data.jobID);
 			appendConsole(
 				"\nSubmitted job " + currJobID +
 				"\nWaiting for server response..."
@@ -135,6 +154,9 @@ $(document).ready(function(){
 		.fail(function(xhr, status, error) {
 			alert(error);
 		});
+
+		//re-enable download buttons
+		toggleDownload(true);
 	}
 
 	/**
@@ -144,15 +166,15 @@ $(document).ready(function(){
 		appendConsole(
 			"\n" + element.prop("name") +
 			" is a required input!"
-		)
-		element.addClass("highlight")
+		);
+		element.addClass("highlight");
 		setTimeout(function() {
 			element.removeClass("highlight")
-		},5000)
+		},5000);
 	}
 
 	//Hook up the submit button to the submit() function.
-	$("#submit").click(submit)
+	$("#submit").click(submit);
 
 	/* 
 	 * disable/enable the synMed/stopMed fields depending on 
