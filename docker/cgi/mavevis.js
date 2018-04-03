@@ -155,6 +155,8 @@ $(document).ready(function(){
 			alert(error);
 		});
 
+		$("#outputpanel").show();
+
 		//re-enable download buttons
 		toggleDownload(true);
 	}

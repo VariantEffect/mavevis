@@ -75,6 +75,7 @@ label.left {
 }
 
 #outputpanel {
+	display: none;
 	text-align: center;
 	flex: 1;
 	min-height: 100px;
