@@ -1,0 +1,16 @@
+#!/bin/bash
+
+for PKG_NAME in "freesasa" "dssp" "clustalo"
+do
+	PKG_PATH=`which $PKG_NAME`
+	if [ -x "$PKG_PATH" ] ; then
+		echo "Found: $PKG_PATH" ;
+	else
+		echo "---------------- CONFIGURATION ERROR ------------------"
+		echo "Configuration failed because $PKG_NAME was not found. "
+		echo "Please make sure it is installed and executable!"
+		echo "-------------------------------------------------------"
+		exit 1;
+	fi
+done
+exit 0
