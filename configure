@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# "configure" shell script, to be automatically executed by R's package installation
+# function. Only serves the purpose of raising an error if external dependencies
+# are not satisfied. Notifies the user of the failing dependency.
+
 for PKG_NAME in "freesasa" "dssp" "clustalo"
 do
 	PKG_PATH=`which $PKG_NAME`
