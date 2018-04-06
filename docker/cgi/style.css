@@ -6,7 +6,10 @@ body {
 	font-size: 10pt;
 	margin-bottom: 100px;
 	background: url(
-		data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAALklEQVQIW2P8DwQMSODOnTsMjMiCIAEVFRWEIEwApAmsElkALHj79u3/IC3IAABt3x+GdGufqQAAAABJRU5ErkJggg==
+		'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg\
+		AAAAUAAAAFCAYAAACNbyblAAAALklEQVQIW2P8DwQMSOD\
+		OnTsMjMiCIAEVFRWEIEwApAmsElkALHj79u3/IC3IAABt\
+		3x+GdGufqQAAAABJRU5ErkJggg=='
 	);
 }
 
