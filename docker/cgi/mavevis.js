@@ -40,6 +40,12 @@ $(document).ready(function(){
 		console.parent().scrollTop(console.scrollHeight);
 	}
 
+	function displayMessage(text,title) {
+		$("#dialog").text(text);
+		$("#dialog").dialog("option","title",title)
+		$("#dialog").dialog("open");
+	}
+
 	/**
 	 * Submit the information currently entered in the form to the
 	 * submit.R service via POST and then call the pollStatus() function.
@@ -102,7 +108,8 @@ $(document).ready(function(){
 			setTimeout(pollStatus,1000)
 		})
 		.fail(function(xhr, status, error) {
-			alert(error);
+			// alert(error);
+			displayMessage(error,"Error");
 		});
 	}
 
@@ -123,17 +130,20 @@ $(document).ready(function(){
 					showResult();
 					break;
 				case "Error":
-					alert(data.message)
+					// alert(data.message)
+					displayMessage(data.message,"Error");
 					break;
 				case "Processing":
 					setTimeout(pollStatus,1000)
 					break;
 				default:
-					alert("status service returned an unexpected result!")
+					// alert("status service returned an unexpected result!")
+					displayMessage("Status monitor service returned an unexpected result!","Error");
 			}
 		})
 		.fail(function(xhr, status, error) {
-			alert(error);
+			// alert(error);
+			displayMessage(error,"Error");
 		});
 	}
 
@@ -152,10 +162,11 @@ $(document).ready(function(){
 			$("#imagepanel").html('<img src="'+url+'" alt="result"/>')
 		})
 		.fail(function(xhr, status, error) {
-			alert(error);
+			// alert(error);
+			displayMessage(error,"Error");
 		});
 
-		$("#outputpanel").show();
+		$("#outputpanel").show("drop");
 
 		//re-enable download buttons
 		toggleDownload(true);
@@ -187,6 +198,16 @@ $(document).ready(function(){
 	});
 	$("#stopAuto").change(function() {
 		$("#stopMed").prop("disabled",this.checked);
+	});
+
+	$("#dialog").dialog({
+		autoOpen: false,
+		modal: true,
+		buttons: {
+			Close: function() {
+				$(this).dialog("close");
+			}
+		}
 	});
 
 });

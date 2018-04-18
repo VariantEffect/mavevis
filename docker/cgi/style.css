@@ -2,7 +2,7 @@ body {
 	/*min-width: 1000px;
 	max-width: 1200px;*/
 	font-family: LiberationSans, Arial, sans-serif;
-	padding: 20px 50px 50px 50px;
+	padding: 20px 50px 50px 70px;
 	font-size: 10pt;
 	margin-bottom: 100px;
 	background: url(
@@ -25,7 +25,8 @@ label.left {
 }
 
 .header {
-	margin-bottom: 20px;
+	margin-bottom: -30px;
+	margin-left: -50px;
 	font-style: italic;
 }
 
