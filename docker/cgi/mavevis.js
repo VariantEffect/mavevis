@@ -166,7 +166,8 @@ $(document).ready(function(){
 			displayMessage(error,"Error");
 		});
 
-		$("#outputpanel").show("drop");
+		//Fade in the output panel with a window blinds effect
+		$("#outputpanel").show("blind",1000);
 
 		//re-enable download buttons
 		toggleDownload(true);
