@@ -70,12 +70,12 @@ COPY mavevis.conf /etc/apache2/sites-available/
 RUN a2dissite 000-default.conf && a2ensite mavevis
 
 # Print logs to stdout
-RUN \
-  ln -sf /proc/self/fd/1 /var/log/apache2/access.log && \
-  ln -sf /proc/self/fd/1 /var/log/apache2/error.log && \
-  # ln -sf /proc/self/fd/1 /var/www/mavevis/logs/exec.log && \
-  ln -sf /proc/self/fd/1 /var/www/mavevis/logs/error.log && \
-  ln -sf /proc/self/fd/1 /var/www/mavevis/logs/access.log
+# RUN \
+#   ln -sf /proc/self/fd/1 /var/log/apache2/access.log && \
+#   ln -sf /proc/self/fd/1 /var/log/apache2/error.log && \
+#   # ln -sf /proc/self/fd/1 /var/www/mavevis/logs/exec.log && \
+#   ln -sf /proc/self/fd/1 /var/www/mavevis/logs/error.log && \
+#   ln -sf /proc/self/fd/1 /var/www/mavevis/logs/access.log
 
 #setup startup script and daemon
 COPY startup.sh daemon.R /setup/

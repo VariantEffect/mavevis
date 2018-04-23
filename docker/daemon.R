@@ -8,6 +8,7 @@ cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/mavevis/cache/")
 if (!file.exists(cache.dir)) {
 	stop("Cache directory does not exist!")
 }
+
 #a file that stores the job status table
 statusDB.file <- paste0(cache.dir,"statusDB.csv")
 #a file that records past job history once they are retired
@@ -40,54 +41,79 @@ exportStatus <- function() {
 	write.table(status,statusDB.file,sep=",",row.names=FALSE)
 }
 
+#handler for any potential errors
+handleError <- function(ex) {
+	#eventually this should send an email via system("mail ...")
+	#but this is apparently very difficult to do on a google instance
+	#as port 25 is blocked to prevent spamming.
+	#For now we just make a log entry
+	logger(as.character(ex))
+}
+
 #starts the daemon. 
 #infinitely checks for new ids and processes them every two seconds
 #also retires jobs older than one week
 daemon <- function() {
-	#infinite loop 
-	while(TRUE) {
-		#patrol the directory for new jobs
-		patrol()
-		#sleep for two seconds until next patrol
-		Sys.sleep(2)
-	}
+	#catch any errors remaining errors and handle them
+	tryCatch(
+		{
+			logger("INFO: Daemon started.")
+			#infinite loop 
+			while(TRUE) {
+				#patrol the directory for new jobs
+				patrol()
+				#sleep for two seconds until next patrol
+				Sys.sleep(2)
+			}
+		},
+		error=handleError
+	)
 }
 
 #check the directory for jobs and deal with them
 patrol <- function() {
-	#list all job input files
-	files <- list.files(cache.dir,pattern="^input_")
-	#for each input file
-	invisible(lapply(files, function(f) {
-		#full path to input file
-		path <- paste0(cache.dir,f)
-		#extract job ID
-		id <- substr(f,7,42)
-		#calculate age of the job
-		age <- difftime(Sys.time(), file.info(path)[,"ctime"], units = "weeks")
-		#find the corresponding row in the status table
-		i <- which(status$id==id)
+	#catch any errors and handle them
+	tryCatch(
+		{
+			#list all job input files
+			files <- list.files(cache.dir,pattern="^input_")
+			#for each input file
+			invisible(lapply(files, function(f) {
+				#full path to input file
+				path <- paste0(cache.dir,f)
+				#extract job ID
+				id <- substr(f,7,42)
+				#calculate age of the job
+				age <- difftime(Sys.time(), file.info(path)[,"ctime"], units = "weeks")
+				#find the corresponding row in the status table
+				i <- which(status$id==id)
 
-		if (!(id %in% status$id)) {
-			#if it's new, send it to processing
-			process(id)
-		} else if (age >= 1) {
-			#if it's older than 1 week, retire it
-			retire(id)
-		} else if (file.exists(paste0(cache.dir,"progress_",id,".log")) 
-				&& status[i,"status"] == "Accepted") {
-			#if it has been accepted and a log file exists, mark it as running
-			status[i,"status"] <<- "Running"
-			exportStatus()
-		} else if (file.exists(paste0(cache.dir,"result_",id,".png")) 
-				&& status[i,"status"] == "Running") {
-			#if it's marked running and a result exists, mark it as complete
-			status[i,"status"] <<- "Complete"
-			exportStatus()
-		}
-		#TODO: may want to check for errors in the log file to update status
-		return(NULL)
-	}))
+				if (!(id %in% status$id)) {
+					#if it's new, send it to processing
+					logger(paste("INFO: Processing job",id))
+					process(id)
+				} else if (age >= 1) {
+					#if it's older than 1 week, retire it
+					logger(paste("INFO: Retiring old job",id))
+					retire(id)
+				} else if (file.exists(paste0(cache.dir,"progress_",id,".log")) 
+						&& status[i,"status"] == "Accepted") {
+					#if it has been accepted and a log file exists, mark it as running
+					status[i,"status"] <<- "Running"
+					exportStatus()
+				} else if (file.exists(paste0(cache.dir,"result_",id,".png")) 
+						&& status[i,"status"] == "Running") {
+					#if it's marked running and a result exists, mark it as complete
+					status[i,"status"] <<- "Complete"
+					exportStatus()
+				}
+				#TODO: may want to check for errors in the log file to update status
+				return(NULL)
+			}))
+		},
+		error=handleError
+	)
+	
 }
 
 #start processing a given id
