@@ -65,7 +65,8 @@ RUN chmod a+rx /var/www/html/mavevis/httpdocs/*.R &&\
     mkdir /var/www/html/mavevis/httpdocs/results/ &&\
     chmod 777 /var/www/html/mavevis/httpdocs/results/
 
-#Introduce apache configuration file for app and enable it
+#Introduce apache configuration files for app and enable it
+COPY security.conf /etc/apache2/conf-available/
 COPY mavevis.conf /etc/apache2/sites-available/
 RUN a2dissite 000-default.conf && a2ensite mavevis
 

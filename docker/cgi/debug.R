@@ -10,6 +10,20 @@ setMessageSink(paste0(log.dir,"exec.log"))
 #Caching directory
 cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/mavevis/cache/")
 
+#read data from HTTP GET
+input <- readGET()
+
+if (!("code" %in% names(input))) {
+	#otherwise respond with error message
+	respond400("No code provided!")
+	quit(save="no",status=0)
+}
+if (input$code != "lamarama") {
+	respond400("Code incorrect!")
+	quit(save="no",status=0)
+}
+
+
 #Read file contents into a string
 readFile <- function(filename) {
 	if (file.exists(filename)) {
