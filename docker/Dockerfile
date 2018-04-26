@@ -5,6 +5,8 @@
 # To run the container: $docker run -t -p 80:80 --name mavevis mavevis
 
 FROM ubuntu:16.04
+MAINTAINER Jochen Weile <jochenweile@gmail.com>
+ARG UPDATE_RPKG=0
 
 #Force apt-get to skip confirmation questions
 ENV DEBIAN_FRONTEND noninteractive
@@ -40,8 +42,11 @@ RUN wget https://github.com/mittinatten/freesasa/releases/download/2.0.2/freesas
     rm -r freesasa*
 
 #install R packages
+#The UPDATE_RPKG argument doens't actually do anything in the script
+#it just allows forcing docker to override the cache for this instruction
+#by running $docker build --build-arg UPDATE_RPKG=`date +%s` -t jweile/mavevis
 COPY installDependencies.R /setup/
-RUN Rscript installDependencies.R
+RUN Rscript installDependencies.R ${UPDATE_RPKG}
 
 
 # Create mavevis' directory structure and grant access to apache
