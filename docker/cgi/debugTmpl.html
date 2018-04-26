@@ -1,0 +1,41 @@
+<html>
+<head>
+	<title>Debug</title>
+	<link rel="stylesheet" href="style.css" type="text/css"/>
+</head>
+<body style="max-width:1800px">
+	<h1>Debug panel</h1>
+	<div style="float:left;width:850px;">
+		<div class="box">
+			<h2>Daemon Log</h2>
+			<textarea readonly cols=200 rows=10 style="max-width:790;">%daemon</textarea>
+		</div>
+		<div class="box">
+			<h2>Job status DB</h2>
+			<textarea readonly cols=200 rows=10 style="max-width:790;">%db</textarea>
+		</div>
+		<div class="box">
+			<h2>Job history</h2>
+			<textarea readonly cols=200 rows=10 style="max-width:790;">%history</textarea>
+		</div>
+	</div>
+	<div style="float:right;width:850px;">
+		<div class="box">
+			<h2>App access log</h2>
+			<textarea readonly cols=200 rows=10 style="max-width:790;">%maveacc</textarea>
+		</div>
+		<div class="box">
+			<h2>App error log</h2>
+			<textarea readonly cols=200 rows=10 style="max-width:790;">%maveerr</textarea>
+		</div>
+		<div class="box">
+			<h2>Apache access log</h2>
+			<textarea readonly cols=200 rows=10 style="max-width:790;">%apacc</textarea>
+		</div>
+		<div class="box">
+			<h2>Apache error log</h2>
+			<textarea readonly cols=200 rows=10 style="max-width:790;">%aperr</textarea>
+		</div>
+	</div>
+</body>
+</html>

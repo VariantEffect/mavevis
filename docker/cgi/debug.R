@@ -32,7 +32,7 @@ readFile <- function(filename) {
 		close(con)
 		return(paste(lines,collapse="\n"))
 	} else {
-		return("This file does not exist.")
+		return("No entries.")
 	}
 }
 
@@ -47,12 +47,17 @@ files <- c(
 	"/var/log/apache2/error.log"
 )
 
-#Read log files and concatenate them
-output <- paste(do.call(c,lapply(files,function(f) c(
-	"########################",
-	f,"\n",
-	readFile(f),"\n"
-))),collapse="\n")
+content <- sapply(files,readFile)
+names(content) <- c("daemon","db","history","maveacc","maveerr","apacc","aperr")
 
-#Respond to HTTP request
-respondTEXT(output)
+respondTemplateHTML("/var/www/html/mavevis/httpdocs/debugTmpl.html",content)
+
+# #Read log files and concatenate them
+# output <- paste(do.call(c,lapply(files,function(f) c(
+# 	"########################",
+# 	f,"\n",
+# 	readFile(f),"\n"
+# ))),collapse="\n")
+
+# #Respond to HTTP request
+# respondTEXT(output)
