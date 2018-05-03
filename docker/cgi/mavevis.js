@@ -61,7 +61,8 @@ $(document).ready(function(){
 			if (pdbIDs && pdbMainChains) {
 
 				//enable the submit button
-				$("#submitButton").prop('disabled', false);
+				// $("#submitButton").prop('disabled', false);
+				$("#submitButton").button("enable");
 
 			}
 		}
@@ -83,7 +84,8 @@ $(document).ready(function(){
 	 */ 
 	function resetMost() {
 
-		$("#submitButton").prop('disabled', true);
+		$("#submitButton").button("disable");
+		// $("#submitButton").prop('disabled', true);
 		$("#outputpanel").hide();
 
 		$("#uniprot").val("");
@@ -105,9 +107,6 @@ $(document).ready(function(){
 		wt=null;
 		offset=0;
 	}
-
-	//reset is essentially also the same as initializing everything.
-	reset();
 
 	$("#resetButton").click(reset);
 
@@ -441,5 +440,28 @@ $(document).ready(function(){
 			}
 		}
 	});
+
+	/////////////////////////////
+	//CONFIGURE DOWNLOAD BUTTON//
+	/////////////////////////////
+
+	$("#downloadselect").selectmenu({
+		classes: {
+			"ui-selectmenu-button": "ui-button-icon-only splitbutton-select"
+		},
+		change: function(){
+			$("#dlform").submit();
+		}
+	});
+	$( ".controlgroup" ).controlgroup();
+	$( "#downloadbutton" ).click(function() {
+		$("#dlform").submit();
+	});
+
+	$( ".widget input[type=submit], .widget button" ).button();
+	// $( ".widget input[type=number]").spinner();
+
+	//reset is essentially also the same as initializing everything.
+	reset();
 
 });

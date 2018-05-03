@@ -68,8 +68,8 @@ label.left {
 
 #controlpanel {
 	float: left;
-	width:300px;
-	min-width:300px;
+	width:350px;
+	min-width:350px;
 }
 
 #right {
@@ -107,6 +107,12 @@ textarea {
   max-width:260px;
 }
 
+input[type=text] {
+	/*height:25px;*/
+	padding: 5px;
+	max-width: 180px;
+}
+
 details {
 	border: 1px dotted #aaaaaa;
 	padding: 10px;
@@ -127,6 +133,7 @@ input,textarea {
 
 input[type=number]{
     width: 40px;
+    padding: 5px;
 } 
 
 .buttonbar {
@@ -178,6 +185,11 @@ input[type=number]{
 
 .ui-autocomplete-loading {
   background: white url("images/spinner_16x16.gif") right center no-repeat;
+}
+
+.ui-button-icon-only.splitbutton-select {
+	width: 1em;
+	max-width:1em;
 }
 
 @keyframes blinker {
