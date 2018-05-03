@@ -449,7 +449,7 @@ $(document).ready(function(){
 		classes: {
 			"ui-selectmenu-button": "ui-button-icon-only splitbutton-select"
 		},
-		change: function(){
+		select: function(){
 			$("#dlform").submit();
 		}
 	});
