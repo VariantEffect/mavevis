@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title>Atlas of Variant Effects</title>
 	<link rel="stylesheet" href="style.css" type="text/css"/>
@@ -8,99 +9,94 @@
 	<script src="jquery-ui.min.js"></script>
 	<script src="mavevis.js"></script>
 </head>
+
 <body>
-	<!-- <h1>MaveDB visualizer</h1> -->
-	<div id="dialog" title="Error"></div>
+
 	<p class="header">
 		<img src="logo2.png" alt="Atlas of Variant Effects" width="300px">
 	</p>
+
 	<div class="main">
 		<div class="box" id="controlpanel">
-			<form onsubmit="return false;">
-				<p><a title="The MaveDB score-set identifier">
-					<label class="left" for="ssid">Score-set ID</label>
-					<input id="ssid" type="text" name="scoresetID" placeholder="SCS000002A.1"/>
-				</a></p>
-				<p><a title="The Uniprot accession for the wild-type protein">
-					<label class="left" for="uniprot">Uniprot Acc.</label>
-					<input type="text" name="uniprot" id="uniprot" placeholder="P63279"/>
-				</a></p>
-				<p><a title="Multiple comma-separated values allowed!">
-					<label class="left" for="pdb">PDB Acc.</label>
-					<input type="text" name="pdb" id="pdb" placeholder="3UIP"/>
-				</a></p>
-				<p><a title="Multiple comma-separated values allowed!">
-					<label class="left" for="mc">PDB chain</label>
-					<input type="text" name="mainChain" id="mc" placeholder="A"/>
-				</a></p>
-				<details>
-					<summary>Advanced options</summary>
-					<p>
-						<textarea cols=70 rows=10 name="WT" id="wt" placeholder="Custom wildtype sequence"></textarea>
-					</p>
-					<p><a title="Offset of the mapped area from the sequence start">
-						<label class="left" for="seqOffset">Sequence offset</label>
-						<input id="seqOffset" type="number" name="seqOffset" value="0" step="1"/>
-					</a></p>
-					<p><a title="Auto: Use median of synonymous variant scores">
-						<label class="left" for="synMed">WT-like score</label>
-						<input id="synMed" type="number" name="synMed" value="1" step="0.01" disabled/>
-						<input type="checkbox" id="synAuto" value="TRUE" checked/>
-						<label for="synAuto">auto</label>
-					</a></p>
-					<p><a title="Auto: Use median of nonsense variant scores">
-						<label class="left" for="stopMed">Null-like score</label>
-						<input id="stopMed" type="number" name="stopMed" value="0" step="0.01" disabled/>
-						<input type="checkbox" id="stopAuto" value="TRUE" checked/>
-						<label for="stopAuto">auto</label>
-					</a></p>
-					<p>
-						<label class="left" for="pngRes">Image resolution</label> 
-						<input id="pngRes" type="number" name="pngRes" min="50" max="800" step="10" value="100"/>
-						<label for="pngRes">DPI</label>
-					</p>
-					<p><a title="Recalculate all assets instead of using cached data">
-						<label class="left" for="overrideCache">Override cache</label>
-						<input id="overrideCache" type="checkbox" name="overrideCache" value="TRUE"/>
-					</a></p>
-				</details>
-				<p></p>
-				<input id="submit" type="submit" value="Apply"/>
-			</form>
+			<h3>Create Genophenogram</h3>
+			<p><a title="Search for a Protein or other molecule by name">
+				<label class="left" for="molecule">Score set</label>
+				<input id="molecule" type="text" name="molecule"/>
+			</a></p>
+			<p id="uniprotOptions"><a title="The Uniprot accession for the selected protein">
+				<label class="left" for="uniprot">Uniprot Acc</label>
+				<input id="uniprot" type="text" name="uniprot"/>
+			</a></p>
+			<p id="pdbOptions"><a title="PDB structure accessions and chain IDs">
+				<label class="left" for="pdb">PDB structures</label>
+				<input type="text" name="pdb" id="pdb" style="width:110px;" disabled/>
+				<button id="pdbButton">Browse</button>
+			</a></p>
+			<p id="synOptions"><a title="Typical score of a synonymous or WT-like variant">
+				<label class="left" for="synMed">WT-like score</label>
+						<input id="synMed" type="number" name="synMed" value="1" step="0.01"/>
+			</a></p>
+			<p id="stopOptions"><a title="Typical score of a nonsense/stop variant">
+				<label class="left" for="stopMed">Null-like score</label>
+						<input id="stopMed" type="number" name="stopMed" value="0" step="0.01"/>
+			</a></p>
+			<div class="buttonbar">
+				<button id="resetButton">Reset</button>
+				<button id="submitButton">Submit</button>
+			</div>
 		</div>
+
 		<div id="right">
 			<div class="box" id="outputpanel">
+				<div id="mainProgressbar">
+					<div class="progress-label">Submitting...</div>
+				</div>
 				<div class="passepartoutImg" id="imagepanel">
 					
 				</div>
-				<div>
+				<div id="downloadpanel">
 					<form method="POST" action="fetch.R" target="_blank">
 						<input type="hidden" id="jobIDHolder" name="jobID" value="">
 						Download:
-						<input type="submit" id="pdfbutton" name="format" value="pdf" disabled/>
-						<input type="submit" id="pngbutton" name="format" value="png" disabled/>
+						<input type="submit" id="pdfbutton" name="format" value="pdf"/>
+						<input type="submit" id="pngbutton" name="format" value="png"/>
 					</form>
 				</div>
 			</div>
 			<div class="box" id="consolepanel">
 				<div class="passepartoutCons" style="">
-					<pre id="console">Connection established...
-Ready.</pre><span class="blink" style="color: white;">&#9646;</span>
+					<pre id="console"></pre><span class="blink" style="color: white;">&#9646;</span>
 				</div>
 			</div>
 		</div>
 	</div>
-	<br/>
+	</div>
+
 	<div class="footer">
 		Copyright &copy; 2018 Jochen Weile, <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GPLv3.0</a> &nbsp; This project is Free and Open Source. Check it out <a href="https://github.com/jweile/mavevis">Github</a> and <a href="https://hub.docker.com/r/jweile/mavevis/">Docker Hub</a>.
 	</div>
-	<!--<script type="text/javascript">
-		document.getElementById('synAuto').onchange = function() {
-		    document.getElementById('synMed').disabled = this.checked;
-		};
-		document.getElementById('stopAuto').onchange = function() {
-		    document.getElementById('stopMed').disabled = this.checked;
-		};
-	</script>-->
+
+	<div id="pdbDialog" title="PDB data selection">
+		<div id="pdbProgressbar">
+			<div class="progress-label">Searching for PDB entries...</div>
+		</div>
+		<table id="pdbtable">
+			<tbody></tbody>
+			<!-- <tr>
+				<th>PDB</th>
+				<th>Method</th>
+				<th>Resolution</th>
+				<th>Main chains</th>
+				<th>Start</th>
+				<th>End</th>
+				<th>Interactors</th>
+			</tr> -->
+		</table>
+	</div>
+
+	<div id="errordialog" title="Error">
+		<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span><div id="errormessage"></div></p>
+	</div>
+
 </body>
 </html>

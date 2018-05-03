@@ -1,35 +1,36 @@
 $(document).ready(function(){
 
-	/** 
-	 * The current job ID. Gets set by the submit() method
-	 * and read by the pollStatus() and showResult() methods.
+	/**
+	 * variables to store the parameters for submission.
 	 */
-	var currJobID = null;
+	var ssid, uniprot, pdbIDs, pdbMainChains, synMed, stopMed, wt, offset;
+
+	var currJobID;
+
+	////////////////////
+	// Error handling //
+	////////////////////
+	/**
+	 * Set up the error dialog box
+	 */
+	$("#errordialog").dialog({
+		autoOpen: false,
+		buttons: {
+			Close: function() {
+				$(this).dialog("close");
+			}
+		}
+	}).parent().addClass("ui-state-error");;
 
 	/**
-	 * Registers the current jobID with all necessary fields
-	 */ 
-	function setJobID(jobID) {
-		currJobID = jobID;
-		$("#jobIDHolder").val(jobID);
+	 * Shows the error dialog with the given message.
+	 */
+	function showError(text) {
+		$("#errormessage").text(text);
+		$("#errordialog").dialog("open");
 	}
 
-	/**
-	 * Turns the download buttons on or of (depending on job completion)
-	 */
-	function toggleDownload(enabled) {
-		$("#pdfbutton").prop("disabled",!enabled);
-		$("#pngbutton").prop("disabled",!enabled);
-	}
 
-	/**
-	 * Replaces the text in the console and scrolls to the bottom.
-	 */
-	function replaceConsole(text) {
-		var console = $("#console");
-		console.text(text);
-		console.parent().scrollTop(console.scrollHeight);
-	}
 
 	/**
 	 * Appends text to the console and scrolls to the bottom.
@@ -40,77 +41,136 @@ $(document).ready(function(){
 		console.parent().scrollTop(console.scrollHeight);
 	}
 
-	function displayMessage(text,title) {
-		$("#dialog").text(text);
-		$("#dialog").dialog("option","title",title)
-		$("#dialog").dialog("open");
+	$("#consolepanel").hide();
+
+
+	////////////////
+	// Submission //
+	////////////////
+
+
+	/**
+	 * checks if the 
+	 */
+	function checkIfReady() {
+		//are ssid and uniprot fields set?
+		if (ssid && uniprot) {
+			//does the uniprot entry match the wt sequence?
+
+			//are the pdb fields set?
+			if (pdbIDs && pdbMainChains) {
+
+				//enable the submit button
+				$("#submitButton").prop('disabled', false);
+
+			}
+		}
 	}
+
+	/**
+	 * Resets the form back to its initial state
+	 */ 
+	function reset() {
+
+		$("#submitButton").prop('disabled', true);
+		$("#outputpanel").hide();
+
+		$("#molecule").val("");
+		ssid=null;
+
+		$("#uniprot").val("");
+		uniprot=null;
+		$("#uniprotOptions").hide();
+
+		$("#pdb").val("");
+		pdbIDs=null;
+		pdbMainChains=null;
+		$("#pdbOptions").hide();
+
+		$("#synMed").val(1);
+		$("#stopMed").val(0);
+		synMed=null;
+		stopMed=null;
+		$("#synOptions").hide();
+		$("#stopOptions").hide();
+
+		wt=null;
+		offset=0;
+	}
+
+	//reset is essentially also the same as initializing everything.
+	reset();
+
+	$("#resetButton").click(reset);
+
+	$("#submitButton").click(submit);
+
 
 	/**
 	 * Submit the information currently entered in the form to the
 	 * submit.R service via POST and then call the pollStatus() function.
 	 */
 	function submit() {
-		// Extract and pre-process form data
-		var ssid = $("#ssid").val();
-		var uniprot = $("#uniprot").val();
-		var pdb = $("#pdb").val();
-		var mc = $("#mc").val();
-
-		// Flash warnings if mandatory fields are missing
-		if (!ssid) {
-			hilightMissing($("#ssid"));
-			return false;
-		}
-		if (!uniprot) {
-			hilightMissing($("#uniprot"));
-			return false;
-		}
-		if (!pdb) {
-			hilightMissing($("#pdb"));
-			return false;
-		}
-		if (!mc) {
-			hilightMissing($("#mc"));
-			return false;
-		}
 
 		//Express these values as R-compatible strings
-		var wtseq = ($("#wt").val() !== "") ? $("#wt").val() : "NULL";
-		var synMed = !($("#synAuto").is(':checked')) ? $("#synMed").val() : "NULL";
-		var stopMed = !($("#stopAuto").is(':checked')) ? $("#stopMed").val() : "NULL";
-		var overrideCache = $("#overrideCache").is(':checked') ? "TRUE" : "FALSE";
+		var wtR = wt ? wt : "NULL";
+		var synR = synMed ? synMed : "NULL";
+		var stopR = stopMed ? stopMed : "NULL";
+		var pdbS = pdbIDs.toString();
+		var mcS = pdbMainChains.toString();
 
-		//disable download buttons
-		toggleDownload(false);
 
-		// Asynchronous POST request with form data
+		appendConsole(
+			"scoresetID = "+ssid+
+			"\nuniprot = " + uniprot+
+			"\npdb = " + pdbS+
+			"\nmainChain = " + mcS+
+			"\nWT = " + wtR+
+			"\nseqOffset = " + offset+
+			"\nsynMed = " + synR+
+			"\nstopMed = " + stopR+
+			"\npngRes = " + 80+
+			"\noverrideCache = " + "FALSE"
+		);
+
 		$.post("submit.R",
 		{
 			scoresetID: ssid,
 			uniprot: uniprot,
-			pdb: pdb,
-			mainChain: mc,
-			WT: wtseq,
-			seqOffset: $("#seqOffset").val(),
-			synMed: synMed,
-			stopMed: stopMed,
-			pngRes: $("#pngRes").val(),
-			overrideCache: overrideCache,
+			pdb: pdbS,
+			mainChain: mcS,
+			WT: wtR,
+			seqOffset: offset,
+			synMed: synR,
+			stopMed: stopR,
+			pngRes: 80
 		})
 		.done(function(rawdata) {
-			data = JSON.parse(rawdata)
-			setJobID(data.jobID);
-			appendConsole(
-				"\nSubmitted job " + currJobID +
-				"\nWaiting for server response..."
-			)
-			setTimeout(pollStatus,1000)
+			data = JSON.parse(rawdata);
+			// setJobID(data.jobID);
+			currJobID = data.jobID;
+			// appendConsole(
+			// 	"\nSubmitted job " + currJobID +
+			// 	"\nWaiting for server response..."
+			// )
+
+			$("#imagepanel").hide();
+			$("#downloadpanel").hide();
+			$("#mainProgressbar").progressbar({
+				value: false
+			});
+			$("#mainProgressbar .progress-label").text("Submitting...");
+			$("#mainProgressbar").show();
+			$("#outputpanel").show();
+
+			setTimeout(pollStatus,1000);
 		})
 		.fail(function(xhr, status, error) {
 			// alert(error);
-			displayMessage(error,"Error");
+			$("#outputpanel").hide();
+			showError(error);
 		});
+
 	}
 
 	/**
@@ -124,26 +184,31 @@ $(document).ready(function(){
 		})
 		.done(function(rawdata) {
 			data = JSON.parse(rawdata);
-			replaceConsole(data.log)
+			loglines = data.log.split("\n");
+			latest = loglines[loglines.length - 1];
+			// replaceConsole(data.log)
+			$("#mainProgressbar .progress-label").text(latest);
 			switch(data.status) {
 				case "Done":
 					showResult();
 					break;
 				case "Error":
 					// alert(data.message)
-					displayMessage(data.message,"Error");
+					$("#outputpanel").hide();
+					showError(data.message,"Error");
 					break;
 				case "Processing":
 					setTimeout(pollStatus,1000)
 					break;
 				default:
 					// alert("status service returned an unexpected result!")
-					displayMessage("Status monitor service returned an unexpected result!","Error");
+					showError("Status monitor service returned an unexpected result!");
 			}
 		})
 		.fail(function(xhr, status, error) {
 			// alert(error);
-			displayMessage(error,"Error");
+			$("#outputpanel").hide();
+			showError(error);
 		});
 	}
 
@@ -163,49 +228,205 @@ $(document).ready(function(){
 		})
 		.fail(function(xhr, status, error) {
 			// alert(error);
-			displayMessage(error,"Error");
+			showError(error);
 		});
 
-		//Fade in the output panel with a window blinds effect
-		$("#outputpanel").show("blind",1000);
+		//set the download target
+		$("#jobIDHolder").val(currJobID);
 
-		//re-enable download buttons
-		toggleDownload(true);
+
+		$("#imagepanel").show();
+		$("#downloadpanel").show();
+		$("#mainProgressbar").hide();
+		//should already be visible, but just in case...
+		$("#outputpanel").show();
+
+	}
+
+
+	////////////////////////
+	// Scoreset selection //
+	////////////////////////
+
+	/**
+	 * Set up autocomplete box for the search field
+	 */
+	$("#molecule").autocomplete({
+		source: "searchScoresets.R",
+		minLength: 2,
+		delay: 500,
+		select: function(event, ui) {
+
+			ssid = ui.item.ssid;
+			//if a uniprot ID is available, automatically fill it in
+			if (ui.item.uniprot) {
+				$("#uniprot").val(ui.item.uniprot).trigger("change");
+			}
+			//either way show the uniprot field, so the user can change it
+			$("#uniprotOptions").show();
+			//if the synonymous scores need to be manually defined, show the required field
+			if (ui.item.syn == "manual") {
+				$("#synOptions").show();
+				$("#synMed").change(function() {
+					synMed = $(this).val();
+				}).trigger("change");
+			}
+			//if the stop scores need to be manually defined, show the required field
+			if (ui.item.stop == "manual") {
+				$("#stopOptions").show();
+				$("#stopMed").change(function() {
+					stopMed = $(this).val();
+				}).trigger("change");
+			}
+			//store wt sequence and offset
+			wt = ui.item.wt;
+			offset = ui.item.offset;
+		}
+	});
+
+
+	/////////////////////
+	// Uniprot Options //
+	/////////////////////
+
+
+	var uniprotRegex = new RegExp(
+		"[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}"
+	);
+
+	$("#uniprot").change(function() {
+		//if it's a valid ID
+		if (uniprotRegex.test($("#uniprot").val())) {
+			uniprot = $("#uniprot").val();
+			//1. check whether the sequence matches the scoreset
+			//1.a. if not require user to define offset
+			//2. enable PDB selection
+			$("#pdbOptions").show();
+			//3. begin PDB search in background
+			findPdbStructures();
+		}
+	});
+
+	function checkSequence() {
+
+	}
+
+	/////////////////
+	// PDB Options //
+	/////////////////
+
+	/**
+	 * This stores the JSON data used to populate the PDB table.
+	 */
+	var pdbData;
+
+	/**
+	 * Helper function to add a row to the pdb table
+	 * @param tbody the table body object
+	 * @param row JSON data holding the values for the row
+	 * @param header boolean value determining whether this is a header row or not.
+	 */
+	function addRow(tbody,row,header) {
+		var tag = header ? "th" : "td";
+		var rowContent = "<tr>";
+		if (!header) {
+			rowContent += '<td><input type="checkbox"/></td>';
+		}
+		$.each(row, function(j,entry) {
+			rowContent += "<"+tag+">"+entry+"</"+tag+">";
+		});
+		rowContent += "</tr>";
+		tbody.append(rowContent);
 	}
 
 	/**
-	 * highlight a page element with a red background for 5sec
+	 * The title row for the pdb table
+	 */ 
+	var titles = [
+		"Select","PDB","Method","Resolution",
+		"Main chains","Start","End","Interactors"
+	];
+
+	/**
+	 * Calls remote service to find PDB structures 
 	 */
-	function hilightMissing(element) {
-		appendConsole(
-			"\n" + element.prop("name") +
-			" is a required input!"
-		);
-		element.addClass("highlight");
-		setTimeout(function() {
-			element.removeClass("highlight")
-		},5000);
+	function findPdbStructures() {
+		//show the progressbar in the dialog
+		$("#pdbProgressbar").progressbar({
+			value: false
+		});
+		$("#pdbProgressbar").show();
+		//initially hide the results table
+		$("#pdbtable").hide();
+		// make POST request
+		$.post("findPDBs.R",{
+			uniprot: uniprot
+		})
+		.done(function(data) {
+			pdbData = data;
+			//clear any existing data from the table
+			var tbody = $("#pdbtable").find("tbody");
+			tbody.empty();
+			//poplate table with data
+			addRow(tbody,titles,true);
+			$.each(data, function(i,row) {
+				addRow(tbody,row,false);
+			});
+			//hook up the table with click triggers
+			// $("#pdbtable tbody tr").each(function(i,tr){
+			// 	$(tr).click(function(){
+			// 		checkbox = $(tr).find("input:checkbox:first");
+			// 		checkbox.prop("checked",!checkbox.is(":checked"));
+			// 	})
+			// });
+			//show the table
+			$("#pdbProgressbar").hide();
+			$("#pdbtable").show();
+		})
+		.fail(function(xhr, status, error) {
+			showError(error,"Unable to find PDB data: "+error);
+		});
 	}
 
-	//Hook up the submit button to the submit() function.
-	$("#submit").click(submit);
-
-	/* 
-	 * disable/enable the synMed/stopMed fields depending on 
-	 * the synAuto checkbox status
+	/**
+	 * gather the user selection from the pdb table
 	 */
-	$("#synAuto").change(function() {
-		$("#synMed").prop("disabled",this.checked);
-	});
-	$("#stopAuto").change(function() {
-		$("#stopMed").prop("disabled",this.checked);
+	function gatherSelected() {
+		pdbIDs = [];
+		pdbMainChains = [];
+		var descr = "";
+		$("#pdbtable tbody tr").each(function(i,tr) {
+			checkbox = $(tr).find("input:checkbox:first");
+			if ($(checkbox).is(":checked")) {
+				var id = pdbData[i-1].pdb;
+				var mc = pdbData[i-1].mainChains.charAt(0);
+				pdbIDs.push(id);
+				pdbMainChains.push(mc);
+				descr += id+"#"+mc+" ";
+			}
+		});
+		$("#pdb").val(descr).trigger("change");
+	}
+
+	//clicking the pdb button opens a dialog
+	$("#pdbButton").click(function(){
+		//open the dialog
+		$("#pdbDialog").dialog("open");
 	});
 
-	$("#dialog").dialog({
+	//defining the pdb dialog
+	$("#pdbDialog").dialog({
 		autoOpen: false,
 		modal: true,
+		width: 800,
+		height: 600,
 		buttons: {
-			Close: function() {
+			OK: function() {
+				gatherSelected();
+				checkIfReady();
+				$(this).dialog("close");
+			},
+			Cancel: function() {
 				$(this).dialog("close");
 			}
 		}

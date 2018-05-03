@@ -69,6 +69,7 @@ label.left {
 #controlpanel {
 	float: left;
 	width:300px;
+	min-width:300px;
 }
 
 #right {
@@ -79,7 +80,10 @@ label.left {
 }
 
 #outputpanel {
-	display: none;
+	/*display: none;*/
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 	text-align: center;
 	flex: 1;
 	min-height: 100px;
@@ -125,6 +129,34 @@ input[type=number]{
     width: 40px;
 } 
 
+.buttonbar {
+	border-top: 1px solid gray;
+	text-align: right;
+	padding: 10px;
+}
+
+.ui-progressbar {
+	position: relative;
+}
+.progress-label {
+	position: absolute;
+	left: 30%;
+	top: 4px;
+	font-weight: bold;
+	text-shadow: 1px 1px 0 #fff;
+}
+
+#pdbProgressbar {
+	margin-top: 50px;
+	margin-bottom: 50px;
+}
+
+#pdbtable, #pdbtable td, #pdbtable th {
+	border: 1px solid lightgray;
+	padding: 3px;
+	border-collapse: collapse;
+}
+
 .footer { 
 	position: fixed;
 	padding: 10px;
@@ -142,6 +174,10 @@ input[type=number]{
 
 .highlight {
   animation: highlight 1s linear infinite;
+}
+
+.ui-autocomplete-loading {
+  background: white url("images/spinner_16x16.gif") right center no-repeat;
 }
 
 @keyframes blinker {

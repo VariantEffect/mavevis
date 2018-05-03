@@ -15,7 +15,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt update && \
     apt -y dist-upgrade && \
     apt install -y apache2 && \
-    a2enmod cgi
+    a2enmod cgi headers
 
 # Apache ports for HTTP and HTTPS
 EXPOSE 80
@@ -44,7 +44,7 @@ RUN wget https://github.com/mittinatten/freesasa/releases/download/2.0.2/freesas
 #install R packages
 #The UPDATE_RPKG argument doens't actually do anything in the script
 #it just allows forcing docker to override the cache for this instruction
-#by running $docker build --build-arg UPDATE_RPKG=`date +%s` -t jweile/mavevis
+#by running $docker build --build-arg UPDATE_RPKG=`date +%s` -t jweile/mavevis .
 COPY installDependencies.R /setup/
 RUN Rscript installDependencies.R ${UPDATE_RPKG}
 
@@ -59,16 +59,20 @@ RUN mkdir -p /var/www/mavevis/httpdocs &&\
 #set environment variables so the app knows were to write/read data
 ENV MAVEVIS_CACHE /var/www/mavevis/cache/
 ENV MAVEVIS_LOGS /var/www/mavevis/logs/
+#Note: the apache user cannot see these variables, so they must also be set in the
+# apache config file (mavevis.conf)!!!
 RUN printf "export MAVEVIS_CACHE=/var/www/mavevis/cache/\n">>/etc/apache2/envvars &&\
     printf "export MAVEVIS_LOGS=/var/www/mavevis/logs/\n">>/etc/apache2/envvars
 
 #Move CGI scripts to staging location and grant access to apache
 ADD cgi/ /var/www/html/mavevis/httpdocs/
 COPY mavevis_launcher.R /var/www/html/mavevis/
+COPY searchIndex.csv /var/www/mavevis/cache/
 RUN chmod a+rx /var/www/html/mavevis/httpdocs/*.R &&\
     chmod a+rx /var/www/html/mavevis/*.R &&\
     mkdir /var/www/html/mavevis/httpdocs/results/ &&\
-    chmod 777 /var/www/html/mavevis/httpdocs/results/
+    chmod 777 /var/www/html/mavevis/httpdocs/results/ &&\
+    chmod 666 /var/www/mavevis/cache/searchIndex.csv
 
 #Introduce apache configuration files for app and enable it
 COPY security.conf /etc/apache2/conf-available/
