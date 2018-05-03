@@ -72,11 +72,19 @@ $(document).ready(function(){
 	 */ 
 	function reset() {
 
-		$("#submitButton").prop('disabled', true);
-		$("#outputpanel").hide();
-
 		$("#molecule").val("");
 		ssid=null;
+
+		resetMost();
+	}
+
+	/**
+	 * Resets most of the form back to its initial state, except for the score set
+	 */ 
+	function resetMost() {
+
+		$("#submitButton").prop('disabled', true);
+		$("#outputpanel").hide();
 
 		$("#uniprot").val("");
 		uniprot=null;
@@ -256,6 +264,8 @@ $(document).ready(function(){
 		minLength: 2,
 		delay: 500,
 		select: function(event, ui) {
+
+			resetMost();
 
 			ssid = ui.item.ssid;
 			//if a uniprot ID is available, automatically fill it in
