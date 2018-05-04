@@ -50,7 +50,7 @@ switch(
 					file.copy(pngFile,staging.dir)
 					respondTEXT(paste0("results/",fname))
 				},
-				respondPNG(pngFile)
+				respondPNG(pngFile,filename=fname,download=TRUE)
 			)
 		} else {
 			respond404("No PNG output exists for this job!")
@@ -66,7 +66,7 @@ switch(
 					file.copy(pdfFile,staging.dir)
 					respondTEXT(paste0("results/",fname))
 				},
-				respondPDF(pdfFile)
+				respondPDF(pdfFile,filename=fname,download=TRUE)
 			)
 		} else {
 			respond404("No PDF output exists for this job!")
