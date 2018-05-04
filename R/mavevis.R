@@ -153,7 +153,7 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		stop("Parameter 'pngRes' must be numeric")
 	}
 	if (pngRes < 50 || pngRes > 400) {
-		error("PNG resolutions below 50 DPI and above 400 DPI are not allowed.")
+		stop("PNG resolutions below 50 DPI and above 400 DPI are not allowed.")
 	}
 
 	# new.trt <- function() {
@@ -199,32 +199,44 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 	}
 
 
-	cat("Interpreting variants...\n")
+	mutCacheFile <- getCacheFile(paste0(ssid,"_muts.csv"))
+	if (!file.exists(mutCacheFile) || overrideCache) {
 
-	# Check if variants are described at nucleotide-level, amino acid-level, or both
-	if (regexpr("c\\..+ \\(p\\..+\\)$",data$hgvs[[1]]) > 0) {
-		splits <- strsplit(data$hgvs," \\(")
-		if (all(sapply(splits,length)!=2)) {
-			stop("Inconsistent HGVS reporting! Some entries do not specify coding- and protein-level variation!")
+		cat("Interpreting variants...\n")
+
+		# Check if variants are described at nucleotide-level, amino acid-level, or both
+		if (regexpr("c\\..+ \\(p\\..+\\)$",data$hgvs[[1]]) > 0) {
+			splits <- strsplit(data$hgvs," \\(")
+			if (all(sapply(splits,length)!=2)) {
+				stop("Inconsistent HGVS reporting! Some entries do not specify coding- and protein-level variation!")
+			}
+			# mut.coding <- sapply(splits,`[[`,1)
+			mut.prot <- as.vector(sapply(sapply(splits,`[[`,2), function(s) 
+				#trim trailing parentheses
+				if (substr(s,nchar(s),nchar(s))==")") substr(s,1,nchar(s)-1) else s
+			))
+			# mut.coding <- parseHGVS(mut.coding)
+			mut.prot <- parseHGVS(mut.prot,aacode=1)
+		# or if they are only reported at one level
+		} else if (regexpr("^c\\.\\S+$",data$hgvs[[1]],perl=TRUE) > 0) {
+			stop("Dataset does not describe AA-level variation. Not yet implemented!")
+			mut.coding <- parseHGVS(data$hgvs)
+			#TODO: infer AA changes
+			# mut.prot <- data.frame(type=rep(NA,nrow(data)),pos=rep(NA,nrow(data)),
+			# 	ancestral=rep(NA,nrow(data)),variant=rep(NA,nrow(data)))
+		} else if (regexpr("^p\\.\\S+$",data$hgvs[[1]],perl=TRUE) > 0) {
+			mut.prot <- parseHGVS(data$hgvs,aacode=1)
+			# mut.coding <- data.frame(pos=rep(NA,nrow(data)),ancestral=rep(NA,nrow(data)),variant=rep(NA,nrow(data)))
+		} else {
+			stop("HGVS column does not parse!")
 		}
-		mut.coding <- sapply(splits,`[[`,1)
-		mut.prot <- as.vector(sapply(sapply(splits,`[[`,2), function(s) 
-			#trim trailing parentheses
-			if (substr(s,nchar(s),nchar(s))==")") substr(s,1,nchar(s)-1) else s
-		))
-		mut.coding <- parseHGVS(mut.coding)
-		mut.prot <- parseHGVS(mut.prot,aacode=1)
-	# or if they are only reported at one level
-	} else if (regexpr("^c\\.\\S+$",data$hgvs[[1]],perl=TRUE) > 0) {
-		mut.coding <- parseHGVS(data$hgvs)
-		#TODO: infer AA changes
-		# mut.prot <- data.frame(type=rep(NA,nrow(data)),pos=rep(NA,nrow(data)),
-		# 	ancestral=rep(NA,nrow(data)),variant=rep(NA,nrow(data)))
-	} else if (regexpr("^p\\.\\S+$",data$hgvs[[1]],perl=TRUE) > 0) {
-		mut.prot <- parseHGVS(data$hgvs,aacode=1)
-		mut.coding <- data.frame(pos=rep(NA,nrow(data)),ancestral=rep(NA,nrow(data)),variant=rep(NA,nrow(data)))
-	} else {
-		stop("HGVS column does not parse!")
+
+		cat("Caching scoreset locally...\n")
+		write.table(mut.prot,mutCacheFile,sep=",",row.names=FALSE)
+
+	} else {#if cache exists for mutations:
+		cat("Retrieving parsed variants from local cache...\n")
+		mut.prot <- read.csv(mutCacheFile)
 	}
 
 	#Index for multi-mutants
