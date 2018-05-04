@@ -54,6 +54,7 @@ handleError <- function(ex) {
 #infinitely checks for new ids and processes them every two seconds
 #also retires jobs older than one week
 daemon <- function() {
+	#TODO: Try launching apache from here directly and monitor during patrol().
 	#catch any errors remaining errors and handle them
 	tryCatch(
 		{
@@ -157,7 +158,7 @@ retire <- function(id) {
 	i <- which(status$id==id)
 
 	oldEntry <- status[i,]
-	con <- file(historyDB.file,open="a")
+	con <- file(history.file,open="a")
 	write.table(oldEntry,con,sep=",",row.names=FALSE,col.names=FALSE)
 	close(con)
 
