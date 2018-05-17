@@ -37,7 +37,7 @@ getCacheFile <- function(name) {
 #' Retrieves a scoreset entry from MaveDB and renders a dashboard plot consisting
 #' of a genophenogram heatmap, interface burial, solvent accessibility, secondary
 #' structure and conservation. The output is controlled by the \code{outFormats}
-#' parameter and can be either on an X11 device or in PDF or PNG format (or any 
+#' parameter and can be either on an X11 device or in PDF, SVG or PNG format (or any 
 #' combination thereof). Structural and conservation information is obtained from
 #' UniProtKB and PDB, thus the respective database accessions are required. Multiple
 #' PDB files can be used at once.
@@ -57,7 +57,7 @@ getCacheFile <- function(name) {
 #'    of function. This is only necessary if no nonsense variants are present in the dataset.
 #' @param overrideCache defaults to \code{FALSE}. If set to \code{TRUE}, data will always
 #'    be re-downloaded from remote locations instead of using a local cache.
-#' @param outFormats a vector containing any of the following strings: x11, pdf, png .
+#' @param outFormats a vector containing any of the following strings: x11, svg, pdf, png .
 #'    Using two or all three at once is allowed and will result in multiple output files.
 #' @param pngRes Resolution of PNG output in DPI. Defaults to 100.
 #' @param outID a name for the output file to which the plot will be written. Defaults to ssid.
@@ -144,8 +144,8 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 	}
 
 	# outFormats <- strsplit(getArg("outFormats",default="pdf,png"),",")[[1]]
-	if (!all(outFormats %in% c("x11","pdf","png"))) {
-		stop("Parameter 'outFormats' must be comma-separated list of any of the following: 'x11', 'pdf', or 'png'.")
+	if (!all(outFormats %in% c("x11","pdf","png","svg"))) {
+		stop("Parameter 'outFormats' must be comma-separated list of any of the following: 'x11', 'pdf', 'svg', or 'png'.")
 	}
 
 	# pngRes <- as.numeric(getArg("pngRes",default=100))
@@ -335,7 +335,8 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 			x11=x11(,width=img.width,height=img.height),
 			pdf=pdf(getCacheFile(paste0("result_",outID,".pdf")),width=img.width,height=img.height),
 			png=png(getCacheFile(paste0("result_",outID,".png")),width=img.width*pngRes,
-				height=img.height*pngRes,res=pngRes)
+				height=img.height*pngRes,res=pngRes),
+			svg=svg(getCacheFile(paste0("result_",outID,".svg")),width=img.width,height=img.height)
 		)
 		genophenogram(wt.aa=wt.aa,pos=sm.mut$start,mut.aa=sm.mut$variant,
 			score=sm.data$score,error=sm.data$se,syn.med=syn.med,stop.med=stop.med,

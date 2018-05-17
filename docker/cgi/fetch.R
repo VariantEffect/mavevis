@@ -73,6 +73,22 @@ switch(
 			quit(save="no",status=0)
 		}
 	},
+	svg={
+		fname <- paste0("result_",jobID,".svg")
+		svgFile <- paste0(cache.dir,fname)
+		if (file.exists(svgFile)) {
+			switch(output,
+				url={
+					file.copy(svgFile,staging.dir)
+					respondTEXT(paste0("results/",fname))
+				},
+				respondSVG(svgFile,filename=fname,download=TRUE)
+			)
+		} else {
+			respond404("No SVG output exists for this job!")
+			quit(save="no",status=0)
+		}
+	},
 	{#default case: unrecognized argument
 		respond400("Unsupported output format!")
 		quit(save="no",status=0)
