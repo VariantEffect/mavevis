@@ -88,7 +88,7 @@ RUN a2dissite 000-default.conf && a2ensite mavevis
 #   ln -sf /proc/self/fd/1 /var/www/mavevis/logs/access.log
 
 #setup startup script and daemon
-COPY startup.sh daemon.R /setup/
+COPY startup.sh daemon.R sync.R /setup/
 
 #startup script starts apache and daemon
 CMD bash /setup/startup.sh

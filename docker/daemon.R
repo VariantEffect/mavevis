@@ -61,6 +61,9 @@ daemon <- function() {
 			logger("INFO: Daemon started.")
 			#infinite loop 
 			while(TRUE) {
+				#start DB synchronization if necessary
+				#TODO: enable once production DB is updated
+				# check.sync()
 				#patrol the directory for new jobs
 				patrol()
 				#sleep for two seconds until next patrol
@@ -69,6 +72,25 @@ daemon <- function() {
 		},
 		error=handleError
 	)
+}
+
+#time of last synchronization cycle
+lastSyncTime <- as.Date("2018-01-01")
+
+#check whether 1 day has passed since the last synchronization, if so run it.
+check.sync <- function() {
+	#calculate time passed since last synchronization
+	daysSinceSync <- difftime(Sys.time(), lastSyncTime, units = "days")
+	#if more than one day has passed
+	if (daysSinceSync > 1) {
+		#start the sync job
+		system(
+			paste("Rscript sync.R"),
+			wait=FALSE
+		)
+		#update synchronization time
+		lastSyncTime <<- Sys.time()
+	}
 }
 
 #check the directory for jobs and deal with them
