@@ -20,7 +20,7 @@ $(document).ready(function(){
 				$(this).dialog("close");
 			}
 		}
-	}).parent().addClass("ui-state-error");;
+	}).parent().addClass("ui-state-error");
 
 	/**
 	 * Shows the error dialog with the given message.
@@ -255,6 +255,39 @@ $(document).ready(function(){
 	// Scoreset selection //
 	////////////////////////
 
+	function selectScoreset(items) {
+
+		resetMost();
+
+		ssid = items.ssid;
+
+		$("#molecule").val(items.value);
+		//if a uniprot ID is available, automatically fill it in
+		if (items.uniprot) {
+			$("#uniprot").val(items.uniprot).trigger("change");
+		}
+		//either way show the uniprot field, so the user can change it
+		$("#uniprotOptions").show();
+		//if the synonymous scores need to be manually defined, show the required field
+		if (items.syn == "manual") {
+			$("#synOptions").show();
+			$("#synMed").change(function() {
+				synMed = $(this).val();
+			}).trigger("change");
+		}
+		//if the stop scores need to be manually defined, show the required field
+		if (items.stop == "manual") {
+			$("#stopOptions").show();
+			$("#stopMed").change(function() {
+				stopMed = $(this).val();
+			}).trigger("change");
+		}
+		//store wt sequence and offset
+		wt = items.wt;
+		offset = items.offset;
+
+	}
+
 	/**
 	 * Set up autocomplete box for the search field
 	 */
@@ -264,32 +297,33 @@ $(document).ready(function(){
 		delay: 500,
 		select: function(event, ui) {
 
-			resetMost();
+			selectScoreset(ui.item);
+			// resetMost();
 
-			ssid = ui.item.ssid;
-			//if a uniprot ID is available, automatically fill it in
-			if (ui.item.uniprot) {
-				$("#uniprot").val(ui.item.uniprot).trigger("change");
-			}
-			//either way show the uniprot field, so the user can change it
-			$("#uniprotOptions").show();
-			//if the synonymous scores need to be manually defined, show the required field
-			if (ui.item.syn == "manual") {
-				$("#synOptions").show();
-				$("#synMed").change(function() {
-					synMed = $(this).val();
-				}).trigger("change");
-			}
-			//if the stop scores need to be manually defined, show the required field
-			if (ui.item.stop == "manual") {
-				$("#stopOptions").show();
-				$("#stopMed").change(function() {
-					stopMed = $(this).val();
-				}).trigger("change");
-			}
-			//store wt sequence and offset
-			wt = ui.item.wt;
-			offset = ui.item.offset;
+			// ssid = ui.item.ssid;
+			// //if a uniprot ID is available, automatically fill it in
+			// if (ui.item.uniprot) {
+			// 	$("#uniprot").val(ui.item.uniprot).trigger("change");
+			// }
+			// //either way show the uniprot field, so the user can change it
+			// $("#uniprotOptions").show();
+			// //if the synonymous scores need to be manually defined, show the required field
+			// if (ui.item.syn == "manual") {
+			// 	$("#synOptions").show();
+			// 	$("#synMed").change(function() {
+			// 		synMed = $(this).val();
+			// 	}).trigger("change");
+			// }
+			// //if the stop scores need to be manually defined, show the required field
+			// if (ui.item.stop == "manual") {
+			// 	$("#stopOptions").show();
+			// 	$("#stopMed").change(function() {
+			// 		stopMed = $(this).val();
+			// 	}).trigger("change");
+			// }
+			// //store wt sequence and offset
+			// wt = ui.item.wt;
+			// offset = ui.item.offset;
 		}
 	});
 
@@ -316,9 +350,6 @@ $(document).ready(function(){
 		}
 	});
 
-	function checkSequence() {
-
-	}
 
 	/////////////////
 	// PDB Options //
@@ -463,5 +494,65 @@ $(document).ready(function(){
 
 	//reset is essentially also the same as initializing everything.
 	reset();
+
+
+	//////////////////
+	//URL parameters//
+	//////////////////
+
+	/**
+	 * Returns a hash containing the key-value pairs corresponding to the
+	 * URL parameters
+	 */
+	function getURLParameters() {
+		var qry = window.location.search.substring(1);
+		var out = {};
+		if (qry) {
+			var assignments = qry.split('&');
+			for (var i = 0; i < assignments.length; i++) {
+				var keyVal = assignments[i].split('=');
+				out[keyVal[0]] = keyVal[1];
+			}
+		}
+		return out;
+	}
+
+	/**
+	 * looks for an ssid in the URL parameters and if so
+	 * queries the backend for a matching entry. If one is found,
+	 * sets up the form appropriately.
+	 */
+	function processURLParameters() {
+		//get URL parameters
+		params = getURLParameters();
+		console.log(params);
+		//if there are any, process them
+		if (params && ("ssid" in params)) {
+			//query the backend to find matching datasets
+			$.get("searchScoresets.R",{
+				term: params["ssid"]
+			})
+			.done(function(data,status,xhr) {
+				if (data.length > 0) {
+					//iterate over the matching datasets 
+					//(even though there should be at most one match)
+					$.each(data,function(i,items) {
+						//if this is the matching entry, select it.
+						if (items["ssid"] == params["ssid"]) {
+							selectScoreset(items);
+						}
+					})
+				} else {
+					showError("Unknown scoreset!");
+				}
+			})
+			.fail(function(xhr, status, error) {
+				showError(error);
+			});
+		}
+	}
+
+	processURLParameters();
+
 
 });
