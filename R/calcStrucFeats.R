@@ -159,6 +159,14 @@ subcomplex.combos <- function(pdb.file,chain.sets) {
 #' }
 #' @export
 calc.strucfeats <- function(pdb.acc,main.chain) {
+
+	struc.cache.file <- getCacheFile(paste0(pdb.acc,":",main.chain,"_features.csv"))
+
+	if (file.exists(struc.cache.file)) {
+		cat("Using cached features...\n")
+		burial.all <- read.csv(struc.cache.file)
+		return(burial.all)
+	}
 	
 	library("httr")
 	set_config(config(ssl_verifypeer = 0L))
@@ -237,6 +245,8 @@ calc.strucfeats <- function(pdb.acc,main.chain) {
 	allpos <- 1:max(burial$pos)
 	burial.all <- cbind(burial[as.character(allpos),],secstruc=secstruc[as.character(allpos),"struc"])
 	rownames(burial.all) <- burial.all$pos <- allpos
+
+	write.table(burial.all,struc.cache.file,sep=",")
 
 	# cat("Deleting temporary files...\n")
 	# #clean up temp files
