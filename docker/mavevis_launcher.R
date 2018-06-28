@@ -38,10 +38,13 @@ mainChains <- strsplit(mainChainArg,",")[[1]]
 
 overrideCache <- as.logical(keepNull(getArg("overrideCache",default=FALSE)))
 wt.seq <- keepNull(getArg("WT",default=NULL))
-seq.offset <- as.integer(keepNull(getArg("seqOffset",default=0)))
-syn.med <- as.numeric(keepNull(getArg("synMed",default=NULL)))
-stop.med <- as.numeric(keepNull(getArg("stopMed",default=NULL)))
-outFormats <- strsplit(keepNull(getArg("outFormats",default="pdf,png")),",")[[1]]
+seq.offset <- keepNull(getArg("seqOffset",default=0))
+if (!is.null(seq.offset)) seq.offset <- as.integer(seq.offset)
+syn.med <- keepNull(getArg("synMed",default=NULL))
+if (!is.null(syn.med)) syn.med <- as.numeric(syn.med)
+stop.med <- keepNull(getArg("stopMed",default=NULL))
+if (!is.null(stop.med)) stop.med <- as.numeric(stop.med)
+outFormats <- strsplit(keepNull(getArg("outFormats",default="pdf,png,svg")),",")[[1]]
 pngRes <- as.numeric(keepNull(getArg("pngRes",default=100)))
 
 cat(
@@ -67,3 +70,4 @@ dashboard(
 )
 
 cat("\nJob completed successfully!\n")
+# close(con)
