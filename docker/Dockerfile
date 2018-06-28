@@ -14,7 +14,7 @@ ENV DEBIAN_FRONTEND noninteractive
 #Install apache httpd and enable CGI
 RUN apt update && \
     apt -y dist-upgrade && \
-    apt install -y apache2 && \
+    apt --no-install-recommends install -y apache2 && \
     a2enmod cgi headers
 
 # Apache ports for HTTP and HTTPS
@@ -28,7 +28,8 @@ WORKDIR /setup
 
 #install dependencies for app
 RUN apt update && \
-    apt install -y r-base wget libcurl4-openssl-dev libssl-dev \
+    apt --no-install-recommends install -y r-base wget \
+    g++ make libcurl4-openssl-dev libssl-dev \
     libxml2 libxml2-dev libjson-c-dev dssp clustalo 
 
 #download, build and install FreeSASA, then cleanup temp files
