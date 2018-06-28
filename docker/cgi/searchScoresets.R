@@ -25,7 +25,7 @@ tryCatch({
 
 #if a search term was provided, filter the index by it
 if (("term" %in% names(input))) {
-	is <- which(grepl(tolower(input$term),tolower(idx$label)) | idx$ssid == input$term)
+	is <- which(grepl(tolower(input$term),tolower(idx$label)) | idx$urn == input$term)
 	if (length(is) == 0) {
 		respondJSON(list())
 		quit(save="no",status=0)

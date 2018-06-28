@@ -125,11 +125,11 @@ tryCatch({
 		mutCacheFile <- paste0(cache.dir,urn,"_muts.csv")
 		if (!file.exists(mutCacheFile)) {
 			#if not, do so
-			if (!exists(scoreTable)) {
+			if (!exists("scoreTable")) {
 				scoreTable <- read.csv(scoreCacheFile)
 			}
 			if (!all(is.na(scoreTable$hgvs_pro))) {
-				varInfo <- parseHGVS(scoreTable$hgvs_pro)
+				varInfo <- parseHGVS(scoreTable$hgvs_pro,aacode=1)
 				write.table(varInfo,mutCacheFile,sep=",",row.names=FALSE)
 			} else {
 				logger(paste("WARNING: Scoreset",urn,"has no protein-level variant descriptors."))

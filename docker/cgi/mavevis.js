@@ -259,7 +259,7 @@ $(document).ready(function(){
 
 		resetMost();
 
-		ssid = items.ssid;
+		ssid = items.urn;
 
 		$("#molecule").val(items.value);
 		//if a uniprot ID is available, automatically fill it in
@@ -525,7 +525,6 @@ $(document).ready(function(){
 	function processURLParameters() {
 		//get URL parameters
 		params = getURLParameters();
-		console.log(params);
 		//if there are any, process them
 		if (params && ("ssid" in params)) {
 			//query the backend to find matching datasets
@@ -538,7 +537,7 @@ $(document).ready(function(){
 					//(even though there should be at most one match)
 					$.each(data,function(i,items) {
 						//if this is the matching entry, select it.
-						if (items["ssid"] == params["ssid"]) {
+						if (items["urn"] == params["ssid"]) {
 							selectScoreset(items);
 						}
 					})
