@@ -112,6 +112,27 @@ $(document).ready(function(){
 
 	$("#submitButton").click(submit);
 
+	$("#exampleButton").click(loadExample);
+
+	function loadExample() {
+		reset();
+		selectScoreset({
+			value : "urn:mavedb:00000001-a-1: UBE2I imputed & refined",
+			label : "UBE2I imputed & refined",
+			urn : "urn:mavedb:00000001-a-1",
+			target : "UBE2I",
+			uniprot : "P63279",
+			syn : "auto",
+			stop : "manual",
+			offset : 0,
+			wt : "ATGTCGGGGATCGCCCTCAGCAGACTCGCCCAGGAGAGGAAAGCATGGAGGAAAGACCACCCATTTGGTTTCGTGGCTGTCCCAACAAAAAATCCCGATGGCACGATGAACCTCATGAACTGGGAGTGCGCCATTCCAGGAAAGAAAGGGACTCCGTGGGAAGGAGGCTTGTTTAAACTACGGATGCTTTTCAAAGATGATTATCCATCTTCGCCACCAAAATGTAAATTCGAACCACCATTATTTCACCCGAATGTGTACCCTTCGGGGACAGTGTGCCTGTCCATCTTAGAGGAGGACAAGGACTGGAGGCCAGCCATCACAATCAAACAGATCCTATTAGGAATACAGGAACTTCTAAATGAACCAAATATCCAAGACCCAGCTCAAGCAGAGGCCTACACGATTTACTGCCAAAACAGAGTGGAGTACGAGAAAAGGGTCCGAGCACAAGCCAAGAAGTTTGCGCCCTCATAA"
+		});
+		pdbIDs="3UIP";
+		pdbMainChains="A";
+		$("#pdb").val("3UIP#A").trigger("change");
+		checkIfReady();
+	}
+
 
 	/**
 	 * Submit the information currently entered in the form to the
