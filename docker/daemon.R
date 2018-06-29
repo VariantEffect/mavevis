@@ -78,13 +78,16 @@ lastSyncTime <- as.Date("2018-01-01")
 
 #check whether 1 day has passed since the last synchronization, if so run it.
 check.sync <- function() {
+	#check if a previous sync job is still running
+	#(i.e. count the number of matching jobs in the process list)
+	njobs <- as.numeric(system("ps -fa|grep sync.R|grep -cv grep",intern=TRUE))
 	#calculate time passed since last synchronization
 	minSinceSync <- difftime(Sys.time(), lastSyncTime, units = "mins")
-	#if more than five minutes has passed
-	if (minSinceSync > 5) {
+	#if more than five minutes has passed and no previous job is still runnning
+	if (njobs == 0 && minSinceSync > 5) {
 		#start a sync job
 		system(
-			paste("Rscript sync.R"),
+			"Rscript sync.R",
 			wait=FALSE
 		)
 		#update synchronization time
