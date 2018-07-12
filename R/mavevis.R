@@ -244,12 +244,38 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		mut.prot <- read.csv(mutCacheFile)
 	}
 
+	#Handle deviating error columns
+	if ("se" %in% colnames(data)) {
+		errCol <- as.numeric(data$se)
+	} else if ("SE" %in% colnames(data)) {
+		errCol <- as.numeric(data$SE)
+	} else if ("stderr" %in% colnames(data)) {
+		errCol <- as.numeric(data$stderr)
+	} else if ("sd" %in% colnames(data)) {
+		errCol <- as.numeric(data$sd)
+	} else if ("SD" %in% colnames(data)) {
+		errCol <- as.numeric(data$SD)
+	} else if ("stdev" %in% colnames(data)) {
+		errCol <- as.numeric(data$stdev)
+	} else {
+		errCol <- NULL
+	}
+
+	#Handle datasets with "None" entries
+	if (inherits(data$score,"character")) {
+		data$score <- as.numeric(data$score)
+		filter <- which(!is.na(data$score))
+		data <- data[filter,]
+		errCol <- errCol[filter]
+	}
+
 	#Index for multi-mutants
 	if ("multiPart" %in% colnames(mut.prot)) {
 		index.prot <- as.integer(sapply(strsplit(rownames(mut.prot),"\\."),`[[`,1))
 		nmut.prot <- table(index.prot)
-		syns <- with(mut.prot,unique(index.prot[which(type %in% c("synonymous","invalid","NA"))]))
-		nmut.prot[syns] <- 0
+		#actually we don't want to filter synonymous here
+		# syns <- with(mut.prot,unique(index.prot[which(type %in% c("synonymous","invalid","NA"))]))
+		# nmut.prot[syns] <- 0
 	} else {#no multi-mutations should exist in this case
 		if (nrow(data) != nrow(mut.prot)) {
 			stop("HGVS parse result does not match data! If you see this, report this as a bug.")
@@ -263,6 +289,7 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 	#Reduce to single mutants
 	#TODO: Add option to average over multi-mutants
 	sm.data <- data[nmut.prot < 2,]
+	sm.errCol <- errCol[nmut.prot < 2]
 	sm.mut <- mut.prot[row.names(sm.data),]
 
 	######
@@ -344,7 +371,7 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 			svg=svg(getCacheFile(paste0("result_",outID,".svg")),width=img.width,height=img.height)
 		)
 		genophenogram(wt.aa=wt.aa,pos=sm.mut$start,mut.aa=sm.mut$variant,
-			score=sm.data$score,error=sm.data$se,syn.med=syn.med,stop.med=stop.med,
+			score=sm.data$score,error=sm.errCol,syn.med=syn.med,stop.med=stop.med,
 			grayBack=TRUE,img.width=img.width,tracks=td)
 		if (outFormat != "x11") invisible(dev.off())
 	}
