@@ -84,7 +84,7 @@ tryCatch({
 	scoresets <- rmave$getAllScoreSets()
 
 	#Iterate overscoresets and build index
-	index <- as.df(lapply(scoresets,function(scoreset) {
+	index <- to.df(do.call(rbind,lapply(scoresets,function(scoreset) {
 
 		#If it's an outdated scoreset, skip it!
 		if (!is.null(scoreset$getNextVersion())) {
@@ -143,26 +143,37 @@ tryCatch({
 		#Parse score file to check for presence of syn/stop
 		
 		#Get off set or calculate if necessary
-		offset <- uniprot$getOffset()
-		if (is.null(offset)) {
-			offset <- calcOffset(uniprot$getID(),wtseq)
+		if (!is.null(uniprot)) {
+			uniprotId <- uniprot$getID()
+			offset <- uniprot$getOffset()
+			if (is.null(offset)) {
+				offset <- calcOffset(uniprot$getID(),wtseq)
+			}
+		} else {
+			offset <- NA
+			uniprotId <- NA
 		}
 		
 		#determine whether stop and synonymous variants are present
-		hasStop <- any(varInfo$variant %in% c("Ter","*"))
-		hasSyn <- any(varInfo$type == "synonymous")
+		if ("multiPart" %in% colnames(varInfo)) {
+			hasStop <- any(varInfo$variant %in% c("Ter","*") & is.na(varInfo$multiPart))
+			hasSyn <- any(varInfo$type == "synonymous" & is.na(varInfo$multiPart))
+		} else {
+			hasStop <- any(varInfo$variant %in% c("Ter","*"))
+			hasSyn <- any(varInfo$type == "synonymous")
+		}
 
 
 		#add scoreset information to index
 		list(
 			value=value,label=label,urn=urn,target=tname,
-			uniprot=uniprot$getID(),
+			uniprot=uniprotId,
 			syn=if (hasSyn) "auto" else "manual",
 			stop=if (hasStop) "auto" else "manual",
 			offset=offset, wt=wtseq
 		)
 
-	}))
+	})))
 
 	indexFile <- paste0(cache.dir,"searchIndex.csv")
 	write.table(index,indexFile,sep=",",row.names=FALSE)

@@ -92,6 +92,10 @@ $(document).ready(function(){
 		uniprot=null;
 		$("#uniprotOptions").hide();
 
+		$("#offset").val(0);
+		offset=0;
+		$("#offsetOptions").hide();
+
 		$("#pdb").val("");
 		pdbIDs=null;
 		pdbMainChains=null;
@@ -105,7 +109,6 @@ $(document).ready(function(){
 		$("#stopOptions").hide();
 
 		wt=null;
-		offset=0;
 	}
 
 	$("#resetButton").click(reset);
@@ -305,7 +308,17 @@ $(document).ready(function(){
 		}
 		//store wt sequence and offset
 		wt = items.wt;
-		offset = items.offset;
+		//If offset is NA, need to show offset input box
+		// console.log(items.offset);
+		if (items.offset != null && items.offset != 'undefined') {
+			offset = items.offset;
+			$("#offset").val(items.offset);
+			$("#offset").change(function() {
+				offset = $(this).val();
+			});
+		} else {
+			$("#offsetOptions").show();
+		}
 
 	}
 
