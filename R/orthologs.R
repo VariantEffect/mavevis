@@ -170,6 +170,7 @@ calc.conservation <- function(acc) {
 	uniprot.base <- "https://www.uniprot.org/uniprot/"
 	uniref90.base <- "https://www.uniprot.org/uniref/UniRef90_"
 	uniparc.base <- "https://www.uniprot.org/uniparc/"
+	batch.base <- "https://www.uniprot.org/uploadlists/"
 
 	#Get Orthologs
 	alignment.file <- getCacheFile(paste0(acc,"_alignment.fasta"))
@@ -181,22 +182,18 @@ calc.conservation <- function(acc) {
 		}
 		xrefs <- strsplit(content(htr,"text",encoding="UTF-8"),"\n")[[1]]
 		cat("Retrieving sequences...")
-		fastas <- lapply(xrefs,function(xref) {
-			Sys.sleep(0.5)
-			cat(".")
-			if (grepl("^UPI",xref)) {
-				url <- paste0(uniparc.base,xref,".fasta")
-			} else {
-				url <- paste0(uniprot.base,xref,".fasta")
-			}
-			htr <- GET(url)
-			if (http_status(htr)$category != "Success") {
-				stop("Unable to access Uniref!\n",http_status(htr)$message)
-			}
-			strsplit(content(htr, "text",encoding="UTF-8"),"\n")[[1]]
-		})
+
+		htr <- POST(batch.base, body=list(
+			uploadQuery=paste(xrefs,collapse=" "),
+			format="fasta",
+			from="ACC+ID",
+			to="ACC"
+		),encode="multipart")
+		if (http_status(htr)$category != "Success") {
+			stop("Error accessing UniprotKB!\n",http_status(htr)$message)
+		}	
+		multifasta <- content(htr,"text",encoding="UTF-8")
 		cat("done\n")
-		multifasta <- do.call(c,fastas)
 
 		#export to 
 		fasta.file <- getCacheFile(paste0(acc,"_orthologs.fasta"))
