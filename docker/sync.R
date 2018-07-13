@@ -185,11 +185,24 @@ tryCatch({
 	#pre-cache alignments, PDB files, and structure tracks.
 	invisible(lapply(index$uniprot,function(acc) {
 
+		#skip unknown uniprot entries
+		if (is.na(acc)) {
+			return(NULL)
+		}
+
 		#check if pre-calculated alignment exists. If not, create it.
 		alignment.file <- getCacheFile(paste0(acc,"_alignment.fasta"))
 		if (!file.exists(alignment.file)) {
 			logger(paste("Caching alignment for",acc))
-			calc.conservation(acc)
+			tryCatch({
+				calc.conservation(acc)
+			},error=function(e) {
+				logger(paste(
+					"ERROR: Conservation calculation failed for",
+					acc,"\n",e
+				))
+			})
+			
 		}
 
 		#check if pre-calculated pdb table exists. If not, create it.
