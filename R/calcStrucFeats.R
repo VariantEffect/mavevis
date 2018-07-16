@@ -64,6 +64,10 @@ run.sasa <- function(pdb.file) {
 	close(con)
 	colnames(sasa.out) <- names(widths)
 	for (i in 4:14) sasa.out[,i] <- as.numeric(sasa.out[,i])
+	#fix boolean misclassification bug
+	if (inherits(sasa.out$chain,"logical")) {
+		sasa.out$chain <- sapply(sasa.out$chain,function(x) ifelse(x,"T","F"))
+	}
 	return(sasa.out)
 }
 
