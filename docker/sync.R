@@ -153,6 +153,13 @@ tryCatch({
 			offset <- NA
 			uniprotId <- NA
 		}
+
+		#store map range so we can use it later to filter applicable PDB files
+		if (!is.na(offset)) {
+			mapRange <- range(varInfo$start,na.rm=TRUE)+offset
+		} else {
+			mapRange <- c(NA,NA)
+		}
 		
 		#determine whether stop and synonymous variants are present
 		if ("multiPart" %in% colnames(varInfo)) {
@@ -170,7 +177,8 @@ tryCatch({
 			uniprot=uniprotId,
 			syn=if (hasSyn) "auto" else "manual",
 			stop=if (hasStop) "auto" else "manual",
-			offset=offset, wt=wtseq
+			offset=offset, wt=wtseq, 
+			rangeStart=mapRange[[1]], rangeEnd=mapRange[[2]]
 		)
 
 	})))
@@ -210,7 +218,7 @@ tryCatch({
 		if (!file.exists(pdb.table.file)) {
 
 			logger(paste("Caching structures for",acc))
-			pdb.table <- find.pdbs(acc)
+			pdb.table <- find.pdbs(acc,mapRange)
 
 			#iterate over associated pdb structures
 			apply(pdb.table,1,function(pdb.row) {

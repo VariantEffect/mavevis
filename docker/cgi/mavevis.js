@@ -5,6 +5,14 @@ $(document).ready(function(){
 	 */
 	var ssid, uniprot, pdbIDs, pdbMainChains, synMed, stopMed, wt, offset;
 
+	/**
+	 * variables for range filtering of PDB
+	 */
+	var rangeStart, rangeEnd;
+
+	/**
+	 * variable storing the currently active job id
+	 */
 	var currJobID;
 
 	////////////////////
@@ -285,6 +293,11 @@ $(document).ready(function(){
 
 		ssid = items.urn;
 
+		//store map range this needs to happen first, as PDB matches
+		//will be queried once uniprot value is set.
+		rangeStart=items.rangeStart;
+		rangeEnd=items.rangeEnd;
+
 		$("#molecule").val(items.value);
 		//if a uniprot ID is available, automatically fill it in
 		if (items.uniprot) {
@@ -425,6 +438,7 @@ $(document).ready(function(){
 	 * Calls remote service to find PDB structures 
 	 */
 	function findPdbStructures() {
+		// console.log(uniprot+" "+rangeStart+" "+rangeEnd)
 		//show the progressbar in the dialog
 		$("#pdbProgressbar").progressbar({
 			value: false
@@ -434,7 +448,9 @@ $(document).ready(function(){
 		$("#pdbtable").hide();
 		// make POST request
 		$.post("findPDBs.R",{
-			uniprot: uniprot
+			uniprot: uniprot,
+			rangeStart: rangeStart,
+			rangeEnd: rangeEnd
 		})
 		.done(function(data) {
 			pdbData = data;

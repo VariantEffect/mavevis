@@ -23,7 +23,7 @@ options(stringsAsFactors=FALSE)
 #'      of a complex. Each item follows the syntax chainID=UniprotID/ProteinName
 #' }
 #' @export
-find.pdbs <- function(acc) {
+find.pdbs <- function(acc, filterRange=NA) {
 	library("httr")
 	set_config(config(ssl_verifypeer = 0L))
 
@@ -51,8 +51,8 @@ find.pdbs <- function(acc) {
 			pdb.table$mainChains <- sapply(cnr,`[[`,1)
 			range <- sapply(cnr,`[[`,2)
 			splRange <- strsplit(range,"-")
-			pdb.table$start <- sapply(splRange,`[[`,1)
-			pdb.table$end <- sapply(splRange,`[[`,2)
+			pdb.table$start <- as.numeric(sapply(splRange,`[[`,1))
+			pdb.table$end <- as.numeric(sapply(splRange,`[[`,2))
 			pdb.table$chainsAndRange <- NULL
 
 			cat("Extracting PDB complex partners")
@@ -88,6 +88,17 @@ find.pdbs <- function(acc) {
 	} else {
 		cat("Retrieving data from cache...\n")
 		pdb.table <- read.csv(table.file)
+	}
+
+	# if a range filter is defined, apply it before returning the result.
+	# the unfiltered table gets saved above in case other filter requests 
+	# are made in the future.
+	if (!any(is.na(filterRange))) {
+		# filter out any structure starting after the end 
+		# or ending before the start
+		filter <- which(!(pdb.table$end < filterRange[[1]] | 
+			pdb.table$start > filterRange[[2]]))
+		pdb.table <- pdb.table[filter,]
 	}
 
 	return(pdb.table)

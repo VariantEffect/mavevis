@@ -31,12 +31,23 @@ if (!grepl(uniprotRegex,postdata$uniprot)) {
 	quit(save="no",status=0)
 }
 
+#check if a range was defined
+if (
+	all(c("rangeStart","rangeEnd") %in% names(postdata)) && 
+	!is.na(as.numeric(postdata$rangeStart)) && 
+	!is.na(as.numeric(postdata$rangeEnd))
+) {
+	filterRange <- c(as.numeric(postdata$rangeStart),as.numeric(postdata$rangeEnd))
+} else {
+	filterRange <- c(NA,NA)
+}
+
 #helper function to turn data.frame into list of lists
 lol <- function(df) lapply(1:nrow(df),function(i) as.list(df[i,]))
 
 tryCatch({
 	messages <- capture.output({
-		results <- find.pdbs(postdata$uniprot)
+		results <- find.pdbs(postdata$uniprot,filterRange)
 	})
 	if (!is.null(results) && nrow(results) > 0) {
 		respondJSON(lol(results))
