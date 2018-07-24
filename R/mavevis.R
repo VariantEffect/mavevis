@@ -237,7 +237,8 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		# }
 
 		cat("Caching scoreset locally...\n")
-		write.table(mut.prot,mutCacheFile,sep=",",row.names=FALSE)
+		#row names must be saved also, to ensure correct index resolution!
+		write.table(mut.prot,mutCacheFile,sep=",",row.names=TRUE)
 
 	} else {#if cache exists for mutations:
 		cat("Retrieving parsed variants from local cache...\n")
