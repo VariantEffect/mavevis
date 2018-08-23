@@ -166,7 +166,7 @@ new.trackdrawer <- function(l,nox=FALSE) {
 		} else {
 			op <- par(las=1,mar=c(5,7,4,2)+.1)
 		}
-		plot(NA,type="n",xlim=c(-3.5,l+1),ylim=c(0,h),
+		plot(NA,type="n",xlim=c(-3,l+1),ylim=c(0,h),
 			xlab="AA position",axes=FALSE,ylab="",xaxs="i"
 		)
 		if (!nox) {
