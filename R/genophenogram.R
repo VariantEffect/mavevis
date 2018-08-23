@@ -19,6 +19,8 @@
 genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med, 
 	error=NULL, a=0, grayBack=FALSE, img.width=12, tracks=NULL) {
 
+	library("yogitools")
+
 	#define bezier transformation function
 	bend <- function(x,a=0) {
 		if (is.na(x)) return(NA)
@@ -85,22 +87,30 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	#calculate coordinates and colors for the main heatmap rectangles
 	x <- pos
 	y <- length(aas) - sapply(mut.aa,function(a) if (is.na(a)) NA else which(aas==a)) + 1
-	colRamp <- colorRampPalette(c("royalblue3","white","firebrick3"))(11)
-	scoreToColIdx <- function(score) sapply(score,function(s) {
-		if (is.na(s)) {
-			NA
-		} else if (s < stop.med) {
-			1
-		} else if (s < syn.med) {
-			round(5*(s-stop.med)/(syn.med-stop.med))+1
-		} else if (s < 2*syn.med-stop.med) {
-			round(5*(s-syn.med)/(syn.med-stop.med))+6
-		} else {
-			11
-		}
-	})
-	colIdx <- scoreToColIdx(score)
-	cols <- colRamp[colIdx]
+	neutral.bottom <- stop.med+(syn.med-stop.med)*0.8
+	neutral.top <- stop.med+(syn.med-stop.med)*1.2
+	syn.top <- syn.med+(syn.med-stop.med)
+	cm <- colmap(
+		valStops=c(stop.med, neutral.bottom, neutral.top, syn.top), 
+		colStops=c("royalblue3","white","white","firebrick3")
+	)
+	cols <- cm(score)
+	# colRamp <- colorRampPalette(c("royalblue3","white","firebrick3"))(11)
+	# scoreToColIdx <- function(score) sapply(score,function(s) {
+	# 	if (is.na(s)) {
+	# 		NA
+	# 	} else if (s < stop.med) {
+	# 		1
+	# 	} else if (s < syn.med) {
+	# 		round(5*(s-stop.med)/(syn.med-stop.med))+1
+	# 	} else if (s < 2*syn.med-stop.med) {
+	# 		round(5*(s-syn.med)/(syn.med-stop.med))+6
+	# 	} else {
+	# 		11
+	# 	}
+	# })
+	# colIdx <- scoreToColIdx(score)
+	# cols <- colRamp[colIdx]
 
 	#change wt positions to gold color
 	cols[which(mut.aa==wt.aa[pos])] <- "lightgoldenrod1"
@@ -133,11 +143,13 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	plot(NA,type="n",xlim=c(-1,1),ylim=c(0,13),axes=FALSE,xlab="",ylab="")
 	#autodetect above wt-level scores and draw appropriate legend
 	if (any(score > syn.med, na.rm=TRUE)) {#with red colors
-		rect(0,0:11,1,1:12,col=c(colRamp[1:6],colRamp[6:11]),border=NA)
+		# rect(0,0:11,1,1:12,col=c(colRamp[1:6],colRamp[6:11]),border=NA)
+		rect(0,0:11,1,1:12,col=cm(seq(stop.med,syn.top,length.out=12)),border=NA)
 		rect(0,12,1,13,col="lightgoldenrod1",border=NA)
 		axis(4,at=c(.5,6,11.5,12.5),labels=c("stop","syn","hyper","wt"))
 	} else {#without red colors
-		rect(0,seq(0,10,2),1,seq(2,12,2),col=colRamp[1:6],border=NA)
+		# rect(0,seq(0,10,2),1,seq(2,12,2),col=colRamp[1:6],border=NA)
+		rect(0,seq(0,10,2),1,seq(2,12,2),col=cm(seq(stop.med,syn.med,length.out=6)),border=NA)
 		rect(0,12,1,13,col="lightgoldenrod1",border=NA)
 		axis(4,at=c(1,11,12.5),labels=c("stop","syn","wt"))
 	}
@@ -155,9 +167,17 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	#Summary bars
 	###########
 
-	barvals <- do.call(rbind,tapply(colIdx,x,function(idxs) {
-		table(factor(idxs,levels=1:11))
+	#barvals is a matrix with n rows (for each position) and 11 columns (for 11 score bins)
+	#storing the relative shares of each bin for each position
+	breaks <- seq(stop.med,syn.top,length.out=12)
+	breaks[[1]] <- -Inf; breaks[[12]] <- Inf
+	binMids <- sapply(1:11,function(i)(breaks[[i+1]]+breaks[[i]])/2)
+	barvals <- do.call(rbind,tapply(score,x,function(spp) {
+		hist(spp,breaks=breaks,plot=FALSE)$counts
 	}))
+	# barvals <- do.call(rbind,tapply(colIdx,x,function(idxs) {
+	# 	table(factor(idxs,levels=1:11))
+	# }))
 	# barvals <- apply(barvals,2,`/`,table(pos))
 	barvals <- t(apply(barvals,1,function(xs)xs/sum(xs)))
 	barcums <- cbind(0,t(apply(barvals,1,function(x)sapply(1:11,function(i)sum(x[1:i])))))
@@ -170,7 +190,11 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 		axes=FALSE,xlab="",xaxs="i",
 		ylab="pos/neutral/neg"
 	)
-	n <- length(wt.aa)
+	# n <- length(wt.aa)
+	n <- nrow(barcums)
+	if (n != length(wt.aa)) {
+		warning("WT sequence does not match length of matrix!")
+	}
 
 	#draw gray background if desired
 	if (grayBack) {
@@ -178,7 +202,8 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	}
 
 	for (i in 1:11) {
-		rect(1:n-.5,barcums[,i],1:n+.5,barcums[,i]+barvals[,i],col=colRamp[[i]],border=NA)	
+		# rect(1:n-.5,barcums[,i],1:n+.5,barcums[,i]+barvals[,i],col=colRamp[[i]],border=NA)	
+		rect(1:n-.5,barcums[,i],1:n+.5,barcums[,i+1],col=cm(binMids[[i]]),border=NA)	
 	}
 	axis(2)
 	par(op)
@@ -230,6 +255,8 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 #' @return NULL
 genophenogram.nc <- function(wt.nc, pos, mut.nc, score, syn.med, stop.med, 
 	error=NULL, a=0, grayBack=FALSE, img.width=12, tracks=NULL) {
+
+	library("yogitools")
 
 	bend <- function(x,a=0) {
 		if (is.na(x)) return(NA)
@@ -299,23 +326,31 @@ genophenogram.nc <- function(wt.nc, pos, mut.nc, score, syn.med, stop.med,
 	bases <- c("A","C","G","T")
 	y <- 13 - (sapply(mut.nc,function(base) which(bases==base)) + ((pos-1) %% 3)*4)
 	# y <- length(aas) - sapply(mut.aa,function(a) if (is.na(a)) NA else which(aas==a)) + 1
-
-	colRamp <- colorRampPalette(c("royalblue3","white","firebrick3"))(11)
-	scoreToColIdx <- function(score) sapply(score,function(s) {
-		if (is.na(s)) {
-			NA
-		} else if (s < stop.med) {
-			1
-		} else if (s < syn.med) {
-			round(5*(s-stop.med)/(syn.med-stop.med))+1
-		} else if (s < 2*syn.med-stop.med) {
-			round(5*(s-syn.med)/(syn.med-stop.med))+6
-		} else {
-			11
-		}
-	})
-	colIdx <- scoreToColIdx(score)
-	cols <- colRamp[colIdx]
+	neutral.bottom <- stop.med+(syn.med-stop.med)*0.8
+	neutral.top <- stop.med+(syn.med-stop.med)*1.2
+	syn.top <- syn.med+(syn.med-stop.med)
+	cm <- colmap(
+		valStops=c(stop.med, neutral.bottom, neutral.top, syn.top), 
+		colStops=c("royalblue3","white","white","firebrick3")
+	)
+	cols <- cm(score)
+	
+	# colRamp <- colorRampPalette(c("royalblue3","white","firebrick3"))(11)
+	# scoreToColIdx <- function(score) sapply(score,function(s) {
+	# 	if (is.na(s)) {
+	# 		NA
+	# 	} else if (s < stop.med) {
+	# 		1
+	# 	} else if (s < syn.med) {
+	# 		round(5*(s-stop.med)/(syn.med-stop.med))+1
+	# 	} else if (s < 2*syn.med-stop.med) {
+	# 		round(5*(s-syn.med)/(syn.med-stop.med))+6
+	# 	} else {
+	# 		11
+	# 	}
+	# })
+	# colIdx <- scoreToColIdx(score)
+	# cols <- colRamp[colIdx]
 
 	#change wt positions to gold color
 	cols[which(mut.nc==wt.nc[pos])] <- "lightgoldenrod1"
@@ -338,11 +373,13 @@ genophenogram.nc <- function(wt.nc, pos, mut.nc, score, syn.med, stop.med,
 	op <- par(cex=.6,mar=c(5,3,0,4)+.1)
 	plot(NA,type="n",xlim=c(-1,1),ylim=c(0,13),axes=FALSE,xlab="",ylab="")
 	if (any(score > syn.med, na.rm=TRUE)) {#with red colors
-		rect(0,0:11,1,1:12,col=c(colRamp[1:6],colRamp[6:11]),border=NA)
+		# rect(0,0:11,1,1:12,col=c(colRamp[1:6],colRamp[6:11]),border=NA)
+		rect(0,0:11,1,1:12,col=cm(seq(stop.med,syn.top,length.out=12)),border=NA)
 		rect(0,12,1,13,col="lightgoldenrod1",border=NA)
 		axis(4,at=c(.5,6,11.5,12.5),labels=c("stop","syn","hyper","wt"))
 	} else {#without red colors
-		rect(0,seq(0,10,2),1,seq(2,12,2),col=colRamp[1:6],border=NA)
+		# rect(0,seq(0,10,2),1,seq(2,12,2),col=colRamp[1:6],border=NA)
+		rect(0,seq(0,10,2),1,seq(2,12,2),col=cm(seq(stop.med,syn.med,length.out=6)),border=NA)
 		rect(0,12,1,13,col="lightgoldenrod1",border=NA)
 		axis(4,at=c(1,11,12.5),labels=c("stop","syn","wt"))
 	}
@@ -359,10 +396,18 @@ genophenogram.nc <- function(wt.nc, pos, mut.nc, score, syn.med, stop.med,
 
 	#Summary bars
 	###########
-
-	barvals <- do.call(rbind,tapply(colIdx,x,function(idxs) {
-		table(factor(idxs,levels=1:11))
+	#barvals is a matrix with n rows (for each position) and 11 columns (for 11 score bins)
+	#storing the relative shares of each bin for each position
+	breaks <- seq(stop.med,syn.top,length.out=12)
+	breaks[[1]] <- -Inf; breaks[[12]] <- Inf
+	binMids <- sapply(1:11,function(i)(breaks[[i+1]]+breaks[[i]])/2)
+	barvals <- do.call(rbind,tapply(score,x,function(spp) {
+		hist(spp,breaks=breaks,plot=FALSE)$counts
 	}))
+	
+	# barvals <- do.call(rbind,tapply(colIdx,x,function(idxs) {
+	# 	table(factor(idxs,levels=1:11))
+	# }))
 	# barvals <- apply(barvals,2,`/`,table(pos))
 	barvals <- t(apply(barvals,1,function(xs)xs/sum(xs)))
 	barcums <- cbind(0,t(apply(barvals,1,function(x)sapply(1:11,function(i)sum(x[1:i])))))
@@ -375,7 +420,11 @@ genophenogram.nc <- function(wt.nc, pos, mut.nc, score, syn.med, stop.med,
 		axes=FALSE,xlab="",xaxs="i",
 		ylab="pos/neutral/neg"
 	)
-	n <- length(wt.nc)/3
+	# n <- length(wt.nc)/3
+	n <- nrow(baracums)
+	if (n != length(wt.nc)/3) {
+		warning("WT sequence does not match length of matrix!")
+	}
 
 	#draw gray background if desired
 	if (grayBack) {
@@ -383,7 +432,8 @@ genophenogram.nc <- function(wt.nc, pos, mut.nc, score, syn.med, stop.med,
 	}
 
 	for (i in 1:11) {
-		rect(1:n-.5,barcums[,i],1:n+.5,barcums[,i]+barvals[,i],col=colRamp[[i]],border=NA)	
+		# rect(1:n-.5,barcums[,i],1:n+.5,barcums[,i]+barvals[,i],col=colRamp[[i]],border=NA)
+		rect(1:n-.5,barcums[,i],1:n+.5,barcums[,i]+barvals[,i],col=colRamp[[i]],border=NA)
 	}
 	axis(2)
 	par(op)

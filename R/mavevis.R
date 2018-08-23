@@ -67,7 +67,7 @@ getCacheFile <- function(name) {
 #' \dontrun{
 #' dashboard(
 #'	 ssid="urn:mavedb:00000001-a-1", uniprotId="P63279",
-#'	 pdbs=c("3UIP"), mainChains="A",
+#'	 pdbs="3UIP", mainChains="A",
 #'   syn.med=1,stop.med=0
 #' )
 #' }
