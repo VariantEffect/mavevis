@@ -27,7 +27,8 @@ if (input$code != "lamarama") {
 #Read file contents into a string
 readFile <- function(filename) {
 	if (file.exists(filename)) {
-		con <- file(filename,open="r")
+		# con <- file(filename,open="r")
+		con <- pipe(paste("tail -1000",filename))
 		lines <- readLines(con)
 		close(con)
 		return(paste(lines,collapse="\n"))
