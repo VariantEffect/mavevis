@@ -311,7 +311,7 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		}
 	}
 
-	cat("Obtainin conservation information...\n")
+	cat("Obtaining conservation information...\n")
 	cons <- calc.conservation(uniprotId)
 
 	cat("Reading structural features...\n")
