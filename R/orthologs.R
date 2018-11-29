@@ -82,7 +82,9 @@ find.pdbs <- function(acc, filterRange=NA) {
 			cat("done!\n")
 
 			pdb.table$partners <- sapply(other.prots,function(xs) if (length(xs)==1 && (is.na(xs) || xs == "Error")) NA else paste(xs,collapse=","))
-			pdb.table <- pdb.table[sapply(other.prots,`[[`,1)!= "Error",]
+			if (any(sapply(other.prots,`[[`,1)== "Error",na.rm=TRUE)) {
+				pdb.table <- pdb.table[-which(sapply(other.prots,`[[`,1)== "Error"),]
+			}
 
 		} else {
 			pdb.table <- NULL
