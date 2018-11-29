@@ -63,7 +63,9 @@ find.pdbs <- function(acc, filterRange=NA) {
 				header.url <- paste0(pdb.base,pdb,".pdb")
 				htr <- GET(header.url)
 				if (http_status(htr)$category != "Success") {
-					stop("Unable to access PDB!\n",http_status(htr)$message)
+					#This can actually happen when the structure is excessively large!
+					warning("Unable to access PDB for ",pdb,"!\n",http_status(htr)$message)
+					return("Error")
 				}
 				lines <- strsplit(content(htr, "text",encoding="UTF-8"),"\n")[[1]]
 				xref.lines <- lines[grepl("^DBREF.+ UNP ",lines)]
@@ -79,7 +81,8 @@ find.pdbs <- function(acc, filterRange=NA) {
 			},pdb=pdb.table$pdb,self=pdb.table$mainChains)
 			cat("done!\n")
 
-			pdb.table$partners <- sapply(other.prots,function(xs) if (length(xs)==1 && is.na(xs)) NA else paste(xs,collapse=","))
+			pdb.table$partners <- sapply(other.prots,function(xs) if (length(xs)==1 && (is.na(xs) || xs == "Error")) NA else paste(xs,collapse=","))
+			pdb.table <- pdb.table[sapply(other.prots,`[[`,1)!= "Error",]
 
 		} else {
 			pdb.table <- NULL

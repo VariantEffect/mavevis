@@ -4,9 +4,10 @@
 \alias{dashboard}
 \title{Draw dashboard for scoreset}
 \usage{
-dashboard(ssid, uniprotId, pdbs, mainChains, wt.seq = NULL, seq.offset = 0,
-  syn.med = NULL, stop.med = NULL, overrideCache = FALSE,
-  outFormats = c("pdf", "png"), pngRes = 100, outID = ssid)
+dashboard(ssid, uniprotId, pdbs, mainChains, wt.seq = NULL,
+  seq.offset = 0, syn.med = NULL, stop.med = NULL,
+  overrideCache = FALSE, outFormats = c("pdf", "png"), pngRes = 100,
+  outID = ssid)
 }
 \arguments{
 \item{ssid}{The MaveDB ScoreSet ID of the dataset to be visualized}
@@ -33,7 +34,7 @@ of function. This is only necessary if no nonsense variants are present in the d
 \item{overrideCache}{defaults to \code{FALSE}. If set to \code{TRUE}, data will always
 be re-downloaded from remote locations instead of using a local cache.}
 
-\item{outFormats}{a vector containing any of the following strings: x11, pdf, png .
+\item{outFormats}{a vector containing any of the following strings: x11, svg, pdf, png .
 Using two or all three at once is allowed and will result in multiple output files.}
 
 \item{pngRes}{Resolution of PNG output in DPI. Defaults to 100.}
@@ -44,7 +45,7 @@ Using two or all three at once is allowed and will result in multiple output fil
 Retrieves a scoreset entry from MaveDB and renders a dashboard plot consisting
 of a genophenogram heatmap, interface burial, solvent accessibility, secondary
 structure and conservation. The output is controlled by the \code{outFormats}
-parameter and can be either on an X11 device or in PDF or PNG format (or any 
+parameter and can be either on an X11 device or in PDF, SVG or PNG format (or any 
 combination thereof). Structural and conservation information is obtained from
 UniProtKB and PDB, thus the respective database accessions are required. Multiple
 PDB files can be used at once.
@@ -52,10 +53,9 @@ PDB files can be used at once.
 \examples{
 \dontrun{
 dashboard(
- ssid="SCS000001A.1", uniprotId="P46937",
- pdbs=c("2LAY","2LTW"), mainChains=c("A","A"),
-  wt.seq="GACGTTCCACTGCCGGCTGGTTGGGAAATGGCTAAAACTAGTTCTGGTCAGCGTTACTTCCTGAACCACATCGACCAGACCACCACGTGGCAGGACCCGCGT",
-  seqOffset=170, syn.med=0
+ ssid="urn:mavedb:00000001-a-1", uniprotId="P63279",
+ pdbs="3UIP", mainChains="A",
+  syn.med=1,stop.med=0
 )
 }
 }

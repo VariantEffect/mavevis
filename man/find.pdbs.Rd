@@ -4,7 +4,7 @@
 \alias{find.pdbs}
 \title{Find PDB structures for a Uniprot accession}
 \usage{
-find.pdbs(acc)
+find.pdbs(acc, filterRange = NA)
 }
 \arguments{
 \item{acc}{the Uniprot accession}

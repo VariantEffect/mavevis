@@ -130,7 +130,7 @@ tryCatch({
 			}
 			if (!all(is.na(scoreTable$hgvs_pro))) {
 				varInfo <- parseHGVS(scoreTable$hgvs_pro,aacode=1)
-				write.table(varInfo,mutCacheFile,sep=",",row.names=FALSE)
+				write.table(varInfo,mutCacheFile,sep=",",row.names=TRUE)
 			} else {
 				logger(paste("WARNING: Scoreset",urn,"has no protein-level variant descriptors."))
 				return(NULL)
@@ -191,7 +191,11 @@ tryCatch({
 	logger("Starting caching cycle.")
 
 	#pre-cache alignments, PDB files, and structure tracks.
-	invisible(lapply(index$uniprot,function(acc) {
+	# invisible(lapply(index$uniprot,function(acc) {
+	invisible(lapply(1:nrow(index),function(i) {
+
+		acc <- index$uniprot[[i]]
+		mapRange <- do.call(c,index[i,c("rangeStart","rangeEnd"),drop=TRUE])
 
 		#skip unknown uniprot entries
 		if (is.na(acc)) {
