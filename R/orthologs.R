@@ -179,26 +179,60 @@ pdb.informative <- function(pdb.table) {
 #' @param acc the Uniprot accession
 #' @return a numerical vector with the position-wise conservation.
 #' @export
-calc.conservation <- function(acc) {
+calc.conservation <- function(acc,overrideCache=FALSE) {
 	library("httr")
 	set_config(config(ssl_verifypeer = 0L))
 
 	uniprot.base <- "https://www.uniprot.org/uniprot/"
-	uniref90.base <- "https://www.uniprot.org/uniref/UniRef90_"
+	# uniref90.base <- "https://www.uniprot.org/uniref/UniRef90_"
+	uniref90.base <- "https://www.uniprot.org/uniref/"
 	uniparc.base <- "https://www.uniprot.org/uniparc/"
 	batch.base <- "https://www.uniprot.org/uploadlists/"
 
 	#Get Orthologs
 	alignment.file <- getCacheFile(paste0(acc,"_alignment.fasta"))
-	if (!file.exists(alignment.file)) {
-		ref.url <- paste0(uniref90.base,acc,".list")
+	if (!file.exists(alignment.file) || overrideCache) {
+
+		cat("Querying UniRef...")
+
+		#Find the appropriate UniRef cluster entry
+		htr <- POST(batch.base, body=list(
+			uploadQuery=acc,
+			format="list",
+			from="ACC+ID",
+			to="NF90"
+		),encode="multipart")
+		if (http_status(htr)$category != "Success") {
+			stop("Unable to access UniprotKB!\n",http_status(htr)$message)
+		}
+		unirefAccs <- strsplit(content(htr,"text",encoding="UTF-8"),"\n")[[1]]
+		if (length(unirefAccs) == 0){
+			stop("No Uniref entry exists for ",acc)
+		} else if (length(unirefAccs) > 1) {
+			warning("Multiple Uniref entries for ",acc)
+			unirefAccs <- unirefAccs[[1]]
+		} else {
+			cat("success\n")
+		}
+
+		#Resolve the member IDs for the Uniref cluster
+		ref.url <- paste0(uniref90.base,unirefAccs,".list")
 		htr <- GET(ref.url)
 		if (http_status(htr)$category != "Success") {
 			stop("Unable to access Uniref!\n",http_status(htr)$message)
 		}
 		xrefs <- strsplit(content(htr,"text",encoding="UTF-8"),"\n")[[1]]
-		cat("Retrieving sequences...")
+		#double-check that this is the correct cluster
+		if (!(acc %in% xrefs)) {
+			stop("UniRef Cluster does not contain query protein!")
+		}
+		#make sure query protein is at the top of the list, otherwise re-order
+		if (xrefs[[1]] != acc) {
+			xrefs <- c(acc,setdiff(xrefs,acc))
+		}
 
+		cat("Retrieving sequences...")
+		#use batch-service to download multi-fasta file for the set of sequences
 		htr <- POST(batch.base, body=list(
 			uploadQuery=paste(xrefs,collapse=" "),
 			format="fasta",
@@ -209,7 +243,7 @@ calc.conservation <- function(acc) {
 			stop("Error accessing UniprotKB!\n",http_status(htr)$message)
 		}	
 		multifasta <- content(htr,"text",encoding="UTF-8")
-		cat("done\n")
+		cat("success\n")
 
 		#export to 
 		fasta.file <- getCacheFile(paste0(acc,"_orthologs.fasta"))
@@ -220,21 +254,14 @@ calc.conservation <- function(acc) {
 		#Run ClustalOmega on the sequences
 		cat("Aligning sequences...")
 		retVal <- system(paste(
-			"clustalo -i",fasta.file,"-o",alignment.file
+			"clustalo -i",fasta.file,"--force -o",alignment.file
 		),wait=TRUE)
 		if (retVal != 0) stop("ClustalOmega failed!")
+		cat("success\n")
 	} else cat("Using archived alignment.\n")
-
-	# title.is <- which(grepl("^>",alignment.lines))
-	# end.is <- c(title.is[-1]-1,length(alignment.lines))
-	# alignment.rows <- mapply(function(s,e) paste(alignment.lines[s:e],collapse=""),s=title.is+1,e=end.is)
-	# names(alignment.rows) <- xrefs
 
 	amas <- new.amasLite()
 	conservation <- amas$run(alignment.file)
 
 	return(conservation)
 }
-
-#https://www.uniprot.org/uniparc/UPI0006D932F4.fasta
-# https://www.uniprot.org/uniref/UniRef50_P63279.list
