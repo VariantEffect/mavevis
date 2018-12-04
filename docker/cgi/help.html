@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>MaveVis Help</title>
+	<link rel="stylesheet" href="style.css" type="text/css"/>
+</head>
+
+<body>
+
+	<p class="header">
+		<img src="images/logo2.png" alt="Atlas of Variant Effects" width="300px">
+	</p>
+
+	<div class="main" style="max-height: 100%;">
+		<div class="box" style="max-width: 600px;">
+
+			<h3>MaveVis Help</h3>
+
+			<details class="faq" open>
+				<summary class="faqsum">Q: What is MaveVis?</summary>
+			<p>A: MaveVis is a webtool for visualizing <a href="https://link.springer.com/article/10.1007/s00439-018-1916-x">Variant Effect Maps</a> from <a href="https://www.mavedb.org">MaveDB</a> as heatmaps together with conservation and protein structure information.</p>
+			</details>
+			
+			<details class="faq">
+				<summary class="faqsum">Q: How do I use MaveVis?</summary>
+				<p>A: Go to <a href="http://vis.varianteffect.org">http://vis.varianteffect.org</a>, then<ol>
+					<li>Enter a search term in the <code>Score set</code> field. For example "BRCA1".<ul>
+						<li>A list of possible matches will appear. Pick one.</li>
+					</ul></li>
+					<li>A field labeled <code>Uniprot Acc</code> will appear. If the MaveDB entry you selected already contains a link to UniprotKB, the associated Uniprot Accession will be automatically filled in. Otherwise it will be up to you to enter one.<br/>
+					A second field, labelled <code>Sequence Offset</code> will let you define if and how much the internal numbering in the MaveDB is offset from the official Uniprot sequence.</li>
+					<li>A field labeled <code>PDB structures</code> with <code>Browse</code> button will appear. Click the <code>Browse</code> button.<ul>
+						<li>In the window that appears, you will find a table listing relevant PDB structures that overlap with the Variant Effect Map target sequence. In some instances, this table may take some time to load.</li>
+						<li>Select the structures you would like to include in the visualization. Of particular interest may be the <code>Start</code> and <code>End</code> columns in the table, as they indicate how much of the target sequence is covered in the structure. Furthermore, the <code>Interactors</code> column may be of interest, as it details any protein-protein interaction partners included in the structure.</li>
+						<li>Click <code>OK</code> to confirm your selection. You will see the chose structure identifiers listed in the <code>PDB structures</code> field.</li>
+					</ul></li>
+					<li>If the selected Score Set does not contain any nonsense or synonymous variants, MaveVis cannot automatically determine the appropriate range of scores on which to base the color scale. In these cases, fields for "Null-like" and "WT-like" scores will appear that allow you to customize these values.</li>
+					<li>Once all fields have been filled in, you may click the <code>Visualize!</code> button.</li>
+					<li>After a short time a new box with the completed visualization will appear. At the bottom you will find a <code>Download</code> button, with a drop-down element, which offers different file formats: PDF&nbsp;document; PNG&nbsp;image, and SVG&nbsp;vector&nbsp;graphic.</li>
+				</ol></p>
+			</details>
+
+			<details class="faq">
+				<summary class="faqsum">Q: How do I interpret the output?</summary>
+				<p>A: The heatmap at center of the visualization plots the protein's amino acid positions along the x-axis against all possible amino acid changes. Each cell is colored on a scale from blue via white to red, where blue represents a null-like score (i.e. complete loss-of-function), white represents a wildtype-like score (i.e. no effect), and red represents scores greater than that of the wildtype protein. Yellow cells indicate the original amino acid in the wildtype sequence. Diagonal dashes on each cell indicate either standard deviation or standard error of the shown score (depending which is reported in the original score set) scaled to the difference between null and wildtype scores; i.e. a dash the size of the entire cell indicates stdev/stderr the size of 1 wt-null unit. Uncertainty greater than 1 wt-null unit is indicated by the cell being crossed out.<br/>
+				Above the central heatmap is a summary bar that shows the relative frequency of each color in each column. <br/>
+				The orange tracks above the summary bar indicate <a href="https://en.wikipedia.org/wiki/Protein%E2%80%93protein_interaction#Properties_of_the_interface">burial in protein-protein interactions</a> based on the PDB structures selected. These can be interpreted as amino acid residues being part of an interaction interface.<br/>
+				The steelblue track above that indicates the relative <a href="https://en.wikipedia.org/wiki/Accessible_surface_area">solvent-accessible surface area</a> of each residue. High-solvent accessibility indicates amino acids being on the outside surface of a protein.</br>
+				The next track indicates the secondary structure of the protein. Spiral patterns indicate <a href="https://en.wikipedia.org/wiki/Alpha_helix">&alpha;-helices</a> or <a href="https://en.wikipedia.org/wiki/310_helix">3<sub>10</sub>-helices</a>, while arrows indicate <a href="https://en.wikipedia.org/wiki/Beta_sheet">&beta;-strands</a>.<br/>
+				Finally, the top track shows residue-specific evolutionary sequence conservation, according to the <a href="https://academic.oup.com/bioinformatics/article-abstract/9/6/745/256310">AMAS algorithm</a> based on the UniRef90 sequence set.
+				</p>
+			</details>
+
+			<details class="faq">
+				<summary class="faqsum">Q: Can I access MaveVis computationally via webservice?</summary>
+				<p>A: Yes, there is a set of three webservices, which work together to allow you to use MaveVis computationally: The "submit" service allows you to submit a new visualization job and will return a jobID token, which you can subsequently use to monitor its status and ultimately fetch the result; the "status" service accepts this token and returns a the job's current status and any messages that may apply; the "fetch" service finally accepts the token and a file format and returns the resulting file if the job has completed successfully. Typically, one would submit a job, and use the jobID token to poll the status service until the job is reported to have completed, before retrieving the result using the token with the fetch service.</p>
+
+				<h4>Submit:</h4>
+				<p>To use the submit method, make a POST request to <a href="http://varianteffect.com/submit.R">http://varianteffect.com/submit.R</a> with the following parameters: </p>
+				<table class="helptable">
+					<tr>
+						<th>parameter</th>
+						<th>type</th>
+						<th>required/optional</th>
+						<th>description</th>
+						<th>example</th>
+					</tr>
+					<tr>
+						<td><code>scoresetID</code></td>
+						<td>Character string</td>
+						<td>required</td>
+						<td>The MaveDB scoreset URN</td>
+						<td>urn:mavedb:00000001-a-4</td>
+					</tr>
+					<tr>
+						<td><code>uniprot</code></td>
+						<td>Character string</td>
+						<td>required</td>
+						<td>Uniprot Accession</td>
+						<td>P63279</td>
+					</tr>
+					<tr>
+						<td><code>pdb</code></td>
+						<td>Character string</td>
+						<td>required</td>
+						<td>comma-separated list of PDB IDs</td>
+						<td>3UIP,2PX9</td>
+					</tr>
+					<tr>
+						<td><code>mainChain</code></td>
+						<td>Character string</td>
+						<td>required</td>
+						<td>comma-separated list of PDB chains</td>
+						<td>A,B</td>
+					</tr>
+					<tr>
+						<td><code>overrideCache</code></td>
+						<td>Boolean</td>
+						<td>optional</td>
+						<td>re-acquires all related assets</td>
+						<td>FALSE</td>
+					</tr>
+					<tr>
+						<td><code>WT</code></td>
+						<td>Character string</td>
+						<td>optional</td>
+						<td>The wildtype DNA- or protein-sequence</td>
+						<td>ATGTCGGGGTTACGA[...]</td>
+					</tr>
+					<tr>
+						<td><code>seqOffset</code></td>
+						<td>Integer</td>
+						<td>optional</td>
+						<td>The offset of the scoreset start position relative to the WT sequence</td>
+						<td>0</td>
+					</tr>
+					<tr>
+						<td><code>synMed</code></td>
+						<td>Numeric</td>
+						<td>optional</td>
+						<td>The median score of synonymous variants or expected WT-like score</td>
+						<td>1.0</td>
+					</tr>
+					<tr>
+						<td><code>stopMed</code></td>
+						<td>Numeric</td>
+						<td>optional</td>
+						<td>The median score of nonsense variants or expected null-like score</td>
+						<td>0.0</td>
+					</tr>
+					<tr>
+						<td><code>outFormats</code></td>
+						<td>Character string</td>
+						<td>optional</td>
+						<td>a comma-separated list of output formats to generate: pdf, png, svg</td>
+						<td>pdf,png,svg</td>
+					</tr>
+					<tr>
+						<td><code>pngRes</code></td>
+						<td>Integer</td>
+						<td>optional</td>
+						<td>The desired resolution of any PNG output, in DPI</td>
+						<td>100</td>
+					</tr>
+				</table>
+				<p>The submit method returns a JSON object with a single field:</p>
+				<table class="helptable">
+					<tr>
+						<th>field name</th>
+						<th>type</th>
+						<th>description</th>
+						<th>example</th>
+					</tr>
+					<tr>
+						<td>jobID</td>
+						<td>UUID</td>
+						<td>Universally unique identifier for the submitted job</td>
+						<td>c01f5193-0dda-48ba-ac29-bbb0296ab3cb</td>
+					</tr>
+				</table>
+
+				<h4>Status:</h4>
+				<p>To use the status method, make a POST request to <a href="http://varianteffect.com/status.R">http://varianteffect.com/status.R</a> with the following parameter: </p>
+				<table class="helptable">
+					<tr>
+						<th>parameter</th>
+						<th>type</th>
+						<th>required/optional</th>
+						<th>description</th>
+						<th>example</th>
+					</tr>
+					<tr>
+						<td><code>jobID</code></td>
+						<td>UUID</td>
+						<td>required</td>
+						<td>Universally unique identifier returned by the "submit" function</td>
+						<td>c01f5193-0dda-48ba-ac29-bbb0296ab3cb</td>
+					</tr>
+				</table>
+				<p>The status method returns a JSON object with the following fields:</p>
+				<table class="helptable">
+					<tr>
+						<th>field name</th>
+						<th>type</th>
+						<th>description</th>
+						<th>example</th>
+					</tr>
+					<tr>
+						<td>status</td>
+						<td>Character string</td>
+						<td>A brief status summary: "Processing", "Done", or "Error"</td>
+						<td>Processing</td>
+					</tr>
+					<tr>
+						<td>log</td>
+						<td>Character string</td>
+						<td>Logger output from the running job, if applicable.</td>
+						<td></td>
+					</tr>
+					<tr>
+						<td>message</td>
+						<td>Character string</td>
+						<td>Any error message, if any has occurred</td>
+						<td></td>
+					</tr>
+				</table>
+
+				<h4>Fetch:</h4>
+				<p>To use the fetch method, make a POST request to <a href="http://varianteffect.com/fetch.R">http://varianteffect.com/fetch.R</a> with the following parameters: </p>
+				<table class="helptable">
+					<tr>
+						<th>parameter</th>
+						<th>type</th>
+						<th>required/optional</th>
+						<th>description</th>
+						<th>example</th>
+					</tr>
+					<tr>
+						<td><code>jobID</code></td>
+						<td>UUID</td>
+						<td>required</td>
+						<td>Universally unique identifier returned by the "submit" function</td>
+						<td>c01f5193-0dda-48ba-ac29-bbb0296ab3cb</td>
+					</tr>
+					<tr>
+						<td><code>format</code></td>
+						<td>Character string</td>
+						<td>required</td>
+						<td>The desired file format: pdf, png, or svg</td>
+						<td>png</td>
+					</tr>
+					<tr>
+						<td><code>output</code></td>
+						<td>Character string</td>
+						<td>optional</td>
+						<td>"direct" or "url". Determines whether the method directly returns the file, or just a link to where the file can be downloaded. </td>
+						<td>direct</td>
+					</tr>
+				</table>
+				<p>Depending on the choice of he "output" field, the fetch service will either directly return the contents of the PNG/PDF/SVG file (with appropriate MIME header), or will return a simple text response containing the URL where the file can be downloaded.</p>
+			</details>
+
+			<details class="faq">
+				<summary class="faqsum">Q: How do I cite MaveVis and/or MaveDB?</summary>
+				<p>A: TBA</p>
+			</details>
+		</div>
+	</div>
+
+	<div class="footer">
+		Copyright &copy; 2018 Jochen Weile, <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GPLv3.0</a> &nbsp; This project is Free and Open Source. Check it out <a href="https://github.com/jweile/mavevis">Github</a> and <a href="https://hub.docker.com/r/jweile/mavevis/">Docker Hub</a>.
+	</div>
+
+</body>
+</html>

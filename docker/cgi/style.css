@@ -127,6 +127,18 @@ summary:hover{
 	text-decoration: underline;
 }
 
+details.faq {
+	border: none;
+	padding: 0px;
+	margin-bottom:5px;
+	width:100%;
+}
+summary.faqsum {
+	cursor:pointer;
+	font-weight:bold;
+	margin-top:10px;
+}
+
 input,textarea {
 	margin: 5px;
 }
@@ -164,6 +176,12 @@ input[type=number]{
 	border-collapse: collapse;
 }
 
+.helptable, .helptable tr, .helptable td, .helptable th {
+	text-align: left;
+	border: 1px solid lightgray;
+	padding: 3px;
+	border-collapse: collapse;
+}
 .footer { 
 	position: fixed;
 	padding: 10px;

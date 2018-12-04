@@ -18,40 +18,45 @@
 
 	<div class="main">
 		<div class="box widget" id="controlpanel">
-			<h3>Create Genophenogram</h3>
-			<p><a title="Search for a Protein or other molecule by name">
-				<label class="left" for="molecule">Score set</label>
-				<input id="molecule" class="ui-corner-all" type="text" name="molecule"/>
-				<span class="ui-icon ui-icon-info"></span>
-			</a></p>
-			<p id="uniprotOptions"><a title="The Uniprot accession for the selected protein">
-				<label class="left" for="uniprot">Uniprot Acc</label>
-				<input id="uniprot" class="ui-corner-all" type="text" name="uniprot"/>
-			</a></p>
-			<p id="offsetOptions"><a title="The offset of the dataset's position labels relative to the Uniprot reference sequence">
-				<label class="left" for="offset">Sequence Offset</label>
-				<input id="offset" class="ui-corner-all" type="number" name="offset"/>
-				<span class="ui-icon ui-icon-info"></span>
-			</a></p>
-			<p id="pdbOptions"><a title="PDB structure accessions and chain IDs">
-				<label class="left" for="pdb">PDB structures</label>
-				<input class="ui-corner-all" type="text" name="pdb" id="pdb" style="width:100px;" disabled/>
-				<button id="pdbButton">Browse</button>
-			</a></p>
-			<p id="synOptions"><a title="Please provide the typical score of a synonymous or WT-like variant">
-				<label class="left" for="synMed">WT-like score</label>
-				<input id="synMed" class="ui-corner-all" type="number" name="synMed" value="1" step="0.01"/>
-				<span class="ui-icon ui-icon-info"></span>
-			</a></p>
-			<p id="stopOptions"><a title="Please provide the typical score of a nonsense/stop variant">
-				<label class="left" for="stopMed">Null-like score</label>
-				<input id="stopMed" class="ui-corner-all" type="number" name="stopMed" value="0" step="0.01"/>
-				<span class="ui-icon ui-icon-info"></span>
-			</a></p>
-			<div class="buttonbar">
-				<button id="exampleButton">Example</button>
-				<button id="resetButton">Reset</button>
-				<button id="submitButton">Visualize!</button>
+			<div style="height:50px;">
+				<div style="float:left;width:100px;"><h3>MaveVis</h3></div>
+				<div style="text-align:right;float:right;width:100px;padding-top:15px;"><a href="help.html">Help</a></div>
+			</div>
+			<div>
+				<p><a title="Search for a Protein or other molecule by name">
+					<label class="left" for="molecule">Score set</label>
+					<input id="molecule" class="ui-corner-all" type="text" name="molecule"/>
+					<span class="ui-icon ui-icon-info"></span>
+				</a></p>
+				<p id="uniprotOptions"><a title="The Uniprot accession for the selected protein">
+					<label class="left" for="uniprot">Uniprot Acc</label>
+					<input id="uniprot" class="ui-corner-all" type="text" name="uniprot"/>
+				</a></p>
+				<p id="offsetOptions"><a title="The offset of the dataset's position labels relative to the Uniprot reference sequence">
+					<label class="left" for="offset">Sequence Offset</label>
+					<input id="offset" class="ui-corner-all" type="number" name="offset"/>
+					<span class="ui-icon ui-icon-info"></span>
+				</a></p>
+				<p id="pdbOptions"><a title="PDB structure accessions and chain IDs">
+					<label class="left" for="pdb">PDB structures</label>
+					<input class="ui-corner-all" type="text" name="pdb" id="pdb" style="width:100px;" disabled/>
+					<button id="pdbButton">Browse</button>
+				</a></p>
+				<p id="synOptions"><a title="Please provide the typical score of a synonymous or WT-like variant">
+					<label class="left" for="synMed">WT-like score</label>
+					<input id="synMed" class="ui-corner-all" type="number" name="synMed" value="1" step="0.01"/>
+					<span class="ui-icon ui-icon-info"></span>
+				</a></p>
+				<p id="stopOptions"><a title="Please provide the typical score of a nonsense/stop variant">
+					<label class="left" for="stopMed">Null-like score</label>
+					<input id="stopMed" class="ui-corner-all" type="number" name="stopMed" value="0" step="0.01"/>
+					<span class="ui-icon ui-icon-info"></span>
+				</a></p>
+				<div class="buttonbar">
+					<button id="exampleButton">Example</button>
+					<button id="resetButton">Reset</button>
+					<button id="submitButton">Visualize!</button>
+				</div>
 			</div>
 		</div>
 
