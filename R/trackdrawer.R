@@ -1,3 +1,20 @@
+# Copyright (C) 2018  Jochen Weile, Roth Lab
+#
+# This file is part of MaveVis.
+#
+# MaveVis is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# MaveVis is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with MaveVis.  If not, see <https://www.gnu.org/licenses/>.
+
 
 #' New Trackdrawer object
 #' 
@@ -25,7 +42,6 @@
 #'   \item \code{draw()} draws the plot
 #'   \item \code{num.tracks()} returns the number of tracks currently added to the plot.
 #' }
-
 #' @param l the length of the tracks (i.e. the number of amino acids)
 #' @param nox no x-axis. Removes the x-axis and decreases the bottom margin to 0. This
 #'   option is for use with the \code{layout()} function, to support adding tracks on top

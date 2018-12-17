@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# Copyright (C) 2018  Jochen Weile, Roth Lab
+#
+# This file is part of MaveVis.
+#
+# MaveVis is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# MaveVis is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with MaveVis.  If not, see <https://www.gnu.org/licenses/>.
+
 # "configure" shell script, to be automatically executed by R's package installation
 # function. Only serves the purpose of raising an error if external dependencies
 # are not satisfied. Notifies the user of the failing dependency.
@@ -12,7 +29,8 @@ do
 	else
 		echo "---------------- CONFIGURATION ERROR ------------------"
 		echo "Configuration failed because $PKG_NAME was not found. "
-		echo "Please make sure it is installed and executable!"
+		echo "Please make sure it is installed, added to your PATH  "
+		echo "and is executable!"
 		echo "-------------------------------------------------------"
 		exit 1;
 	fi
