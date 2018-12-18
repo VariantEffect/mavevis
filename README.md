@@ -3,10 +3,10 @@ A tool to visualize variant effect maps from MaveDB [https://www.mavedb.org/](ht
 
 Mavevis can be used in multiple different modes:
 
-* A [webtool]($ Webtool), deployed as a docker container
-* A [RestFul webservice](# RestFul service) available from the same docker deployment
-* An [R-package](# R-package)
-* A [command line tool](CLI script)
+* A [webtool](#Webtool), deployed as a docker container
+* A [RestFul webservice](#RestFul service) available from the same docker deployment
+* An [R-package](#R-package)
+* A [command line tool](#CLI script)
 
 ## Webtool
 The webtool can be found at [http://vis.varianteffect.org](http://vis.varianteffect.org). But if you'd like to deploy it yourself you can get the built docker image at [https://hub.docker.com/r/jweile/mavevis](https://hub.docker.com/r/jweile/mavevis). You will of course need an installation of [Docker](https://www.docker.com/get-started). Then you can pull the image and deploy it as a container:
@@ -50,12 +50,13 @@ At the most basic level, MaveVis is available as an R-package, with the followin
  * roxygen2
  * [cgir](https://github.com/jweile/cgir)
 
-###Installation of the R-package:
+### Installation of the R-package:
+
 #### Ubuntu/Debian/etc:
 
 ```bash
 #Use apt to install meta-dependencies
-$ sudo apt install r-base wget g++ make libcurl4-openssl-dev libssl-dev \\
+$ sudo apt install r-base wget g++ make libcurl4-openssl-dev libssl-dev \
     libxml2 libxml2-dev libjson-c-dev dssp clustalo
 
 #Download and build FreeSASA
@@ -67,7 +68,7 @@ $ make
 $ sudo make install
 
 #Clean-up build directory
-$ cd .. &&\
+$ cd ..
 $ rm -r freesasa*
 
 #Install R-packages
@@ -82,7 +83,7 @@ $ R
 > q()
 
 ```
-###Using the R-package
+### Using the R-package
 A full manual for all functions included in the R-package can be found [here](manual.pdf).
 
 ## CLI script
