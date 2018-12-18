@@ -4,9 +4,9 @@ A tool to visualize variant effect maps from MaveDB [https://www.mavedb.org/](ht
 Mavevis can be used in multiple different modes:
 
 * A [webtool](#Webtool), deployed as a docker container
-* A [RestFul webservice](#RestFul service) available from the same docker deployment
+* A [RestFul webservice](#RestFul-service) available from the same docker deployment
 * An [R-package](#R-package)
-* A [command line tool](#CLI script)
+* A [command line tool](#CLI-script)
 
 ## Webtool
 The webtool can be found at [http://vis.varianteffect.org](http://vis.varianteffect.org). But if you'd like to deploy it yourself you can get the built docker image at [https://hub.docker.com/r/jweile/mavevis](https://hub.docker.com/r/jweile/mavevis). You will of course need an installation of [Docker](https://www.docker.com/get-started). Then you can pull the image and deploy it as a container:
