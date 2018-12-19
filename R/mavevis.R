@@ -256,6 +256,21 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		mut.prot <- read.csv(mutCacheFile)
 	}
 
+	#Index for multi-mutants
+	if ("multiPart" %in% colnames(mut.prot)) {
+		index.prot <- as.integer(sapply(strsplit(rownames(mut.prot),"\\."),`[[`,1))
+		nmut.prot <- table(index.prot)
+		#actually we don't want to filter synonymous here
+		# syns <- with(mut.prot,unique(index.prot[which(type %in% c("synonymous","invalid","NA"))]))
+		# nmut.prot[syns] <- 0
+	} else {#no multi-mutations should exist in this case
+		if (nrow(data) != nrow(mut.prot)) {
+			stop("HGVS parse result does not match data! If you see this, report this as a bug.")
+		}
+		index.prot <- 1:nrow(data)
+		nmut.prot <- rep(1,nrow(data))
+	}
+
 	#Handle deviating error columns
 	if ("se" %in% colnames(data)) {
 		errCol <- as.numeric(data$se)
@@ -273,36 +288,21 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		errCol <- NULL
 	}
 
-	#Handle datasets with "None" entries
-	if (inherits(data$score,"character")) {
-		data$score <- as.numeric(data$score)
-		filter <- which(!is.na(data$score))
-		data <- data[filter,]
-		errCol <- errCol[filter]
-	}
-
-	#Index for multi-mutants
-	if ("multiPart" %in% colnames(mut.prot)) {
-		index.prot <- as.integer(sapply(strsplit(rownames(mut.prot),"\\."),`[[`,1))
-		nmut.prot <- table(index.prot)
-		#actually we don't want to filter synonymous here
-		# syns <- with(mut.prot,unique(index.prot[which(type %in% c("synonymous","invalid","NA"))]))
-		# nmut.prot[syns] <- 0
-	} else {#no multi-mutations should exist in this case
-		if (nrow(data) != nrow(mut.prot)) {
-			stop("HGVS parse result does not match data! If you see this, report this as a bug.")
-		}
-		index.prot <- 1:nrow(data)
-		nmut.prot <- rep(1,nrow(data))
-	}
-
-
 	cat("Filtering for single mutant variants...\n")
 	#Reduce to single mutants
 	#TODO: Add option to average over multi-mutants
 	sm.data <- data[nmut.prot < 2,]
 	sm.errCol <- errCol[nmut.prot < 2]
 	sm.mut <- mut.prot[row.names(sm.data),]
+
+	#Remove "None" or NA entries
+	if (inherits(sm.data$score,"character")) {
+		sm.data$score <- as.numeric(sm.data$score)
+	}
+	filter <- which(!is.na(sm.data$score))
+	sm.data <- sm.data[filter,]
+	sm.mut <- sm.mut[filter,]
+	sm.errCol <- sm.errCol[filter]
 
 	######
 	# Obtain median values for stop and synonymous variants, if not provided by user
