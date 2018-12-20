@@ -34,3 +34,4 @@ runwmount:
 
 push:
 	docker push jweile/mavevis:$(COMMIT)
+	docker push jweile/mavevis:latest
