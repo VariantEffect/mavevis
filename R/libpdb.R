@@ -61,16 +61,22 @@ new.structure <- function(pdb.file) {
 	)
 	colnames(atoms) <- names(widths)
 
-	cwidths <- c(
-		tag=5,pdbId=6,chain=2,chain.start=5,chain.end=6,
-		db=5,xref=10,name=16,ref.start=5,ref.end=7
-	)          
-	chainIds <- read.fwf(pipe(paste("grep -P ^DBREF",.pdb.file)),
-		cwidths,
-		strip.white=TRUE,
-		stringsAsFactors=TRUE
-	)
-	colnames(chainIds) <- names(cwidths)
+	#check if DBREF lines exist
+	hasDbref <- as.numeric(system(paste("grep -Pc ^DBREF",.pdb.file),intern=TRUE)) > 0
+	if (hasDbref) {
+		cwidths <- c(
+			tag=5,pdbId=6,chain=2,chain.start=5,chain.end=6,
+			db=5,xref=10,name=16,ref.start=5,ref.end=7
+		)          
+		chainIds <- read.fwf(pipe(paste("grep -P ^DBREF",.pdb.file)),
+			cwidths,
+			strip.white=TRUE,
+			stringsAsFactors=TRUE
+		)
+		colnames(chainIds) <- names(cwidths)
+	} else {
+		chainIds <- NULL
+	}
 
 	eucl.dist <- function(x,y) sqrt(sum((x-y)^2))
 
