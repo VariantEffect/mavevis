@@ -255,28 +255,29 @@ tryCatch({
 			pdb.table <- find.pdbs(acc,mapRange)
 
 			#iterate over associated pdb structures
-			apply(pdb.table,1,function(pdb.row) {
-				pdbacc <- pdb.row[["pdb"]]
-				mainChains <- strsplit(pdb.row[["mainChains"]],"/")[[1]]
-				#iterate over possible main chains
-				lapply(mainChains,function(mc) {
-					#check if pre-calculated structure data exists. If not, create it.
-					struc.cache.file <- getCacheFile(paste0(pdbacc,":",mc,"_features.csv"))
-					if (!file.exists(struc.cache.file)) {
-						logger(paste("Caching features for",acc,":",pdbacc,"-",mc))
-						tryCatch({
-							calc.strucfeats(pdbacc,mc)
-						},
-						error=function(e) {
-							logger(paste(
-								"ERROR: Features calculation failed for",
-								acc,":",pdbacc,"-",mc,"\n",e
-							))
-						})
-					}
+			if (nrow(pdb.table) > 0) {
+				apply(pdb.table,1,function(pdb.row) {
+					pdbacc <- pdb.row[["pdb"]]
+					mainChains <- strsplit(pdb.row[["mainChains"]],"/")[[1]]
+					#iterate over possible main chains
+					lapply(mainChains,function(mc) {
+						#check if pre-calculated structure data exists. If not, create it.
+						struc.cache.file <- getCacheFile(paste0(pdbacc,":",mc,"_features.csv"))
+						if (!file.exists(struc.cache.file)) {
+							logger(paste("Caching features for",acc,":",pdbacc,"-",mc))
+							tryCatch({
+								calc.strucfeats(pdbacc,mc)
+							},
+							error=function(e) {
+								logger(paste(
+									"ERROR: Features calculation failed for",
+									acc,":",pdbacc,"-",mc,"\n",e
+								))
+							})
+						}
+					})
 				})
-			})
-			
+			}
 		}
 
 	})) 
