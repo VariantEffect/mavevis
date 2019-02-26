@@ -120,6 +120,7 @@ tryCatch({
 		tname <- target$getName()
 		wtseq <- target$getSequence()
 		uniprot <- target$getXrefUniprot()
+		targetType <- target$getType()
 
 		#If the title already contains the target name, there's no need to repeat it
 		if (grepl(tname,name)) {
@@ -130,10 +131,21 @@ tryCatch({
 			label <- paste0(tname," - ",name)
 		}
 
+		if (targetType != "Protein coding") {
+			return(list(
+				value=value,label=label,urn=urn,target=tname,
+				uniprot=NA,syn="manual",stop="manual",
+				offset=0, wt=wtseq, 
+				rangeStart=NA, rangeEnd=NA,
+				type=targetType
+			))
+		}
+
 		#Check if scores are already cached
 		scoreCacheFile <- paste0(cache.dir,urn,".csv")
 		if (!file.exists(scoreCacheFile)) {
 			#If not, download scores and write to cache location
+			logger(paste("Caching new score table",urn))
 			scoreTable <- rmave$getScores(urn)
 			write.table(scoreTable,scoreCacheFile,sep=",",row.names=FALSE)
 		} 
@@ -195,7 +207,8 @@ tryCatch({
 			syn=if (hasSyn) "auto" else "manual",
 			stop=if (hasStop) "auto" else "manual",
 			offset=offset, wt=wtseq, 
-			rangeStart=mapRange[[1]], rangeEnd=mapRange[[2]]
+			rangeStart=mapRange[[1]], rangeEnd=mapRange[[2]],
+			type=targetType
 		)
 
 	})))

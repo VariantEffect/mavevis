@@ -22,7 +22,7 @@
 #' as this function is meant to be used determine to a location for both storage and retrieval.
 #' 
 #' Depending on the execution context, the storage location may differ. The cache location can 
-#' be controlled with the environment variable \code{$MAVECACHE}. This will be made use of within
+#' be controlled with the environment variable \code{$MAVEVIS_CACHE}. This will be made use of within
 #' the mavevis server docker container. If the variable is not set, a directory ".mavecache/"
 #' will be created in the user's home directory to be used as the storage location.
 #' 
