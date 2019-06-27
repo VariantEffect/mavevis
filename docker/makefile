@@ -16,22 +16,25 @@
 # along with MaveVis.  If not, see <https://www.gnu.org/licenses/>.
 
 COMMIT := $(shell git rev-parse HEAD|cut -c1-8)
+#These defaults can be overridden using: make -e USER=itsme PROJECTDIR=/path/to/dir/
+USER ?= jweile
+PROJECTDIR ?= /home/jweile/projects/
 
 build:	
-	docker build --build-arg UPDATE_RPKG=`date +%s` -t jweile/mavevis:$(COMMIT) .
-	docker tag jweile/mavevis:$(COMMIT) jweile/mavevis:latest
+	docker build --build-arg UPDATE_RPKG=`date +%s` -t $(USER)/mavevis:$(COMMIT) .
+	docker tag $(USER)/mavevis:$(COMMIT) $(USER)/mavevis:latest
 
 clean:
 	docker stop mavevis&&docker container rm mavevis
 
 run:
-	nohup docker run -t -p 80:80 --name mavevis jweile/mavevis:$(COMMIT) &
+	nohup docker run -t -p 80:80 --name mavevis $(USER)/mavevis:$(COMMIT) &
 
 runwmount:
 	nohup docker run -t -p 80:80 --name mavevis \
-		--mount type=bind,source=/home/jweile/projects/,target=/projects,readonly \
-		jweile/mavevis:$(COMMIT) &
+		--mount type=bind,source=$(PROJECTDIR),target=/projects,readonly \
+		$(USER)/mavevis:$(COMMIT) &
 
 push:
-	docker push jweile/mavevis:$(COMMIT)
-	docker push jweile/mavevis:latest
+	docker push $(USER)/mavevis:$(COMMIT)
+	docker push $(USER)/mavevis:latest
