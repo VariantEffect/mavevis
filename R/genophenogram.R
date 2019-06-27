@@ -37,6 +37,21 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 
 	library("yogitools")
 
+	#determine if wt.aas covers position range exactly or describes full ORF
+	coverLength <- max(pos,na.rm=TRUE)-min(pos,na.rm=TRUE)+1
+	if (length(wt.aa) > coverLength) {
+		#make sure that the wt.aa still ranges to the end
+		if (max(pos,na.rm=TRUE) <= length(wt.aa)) {
+			startPos <- 1
+			endPos <- length(wt.aa)
+		} else {
+			stop("wt.aa does not match position range!")
+		}
+	} else {
+		startPos <- min(pos,na.rm=TRUE)
+		endPos <- max(pos,na.rm=TRUE)
+	}
+
 	#define bezier transformation function
 	bend <- function(x,a=0) {
 		if (is.na(x)) return(NA)
@@ -65,31 +80,36 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 
 	#Main plot
 	###########
-	aas <- c("A","V","L","I","M","F","Y","W","R","H","K","D","E","S","T","N","Q","G","C","P","*")
+	aas <- toChars("AVLIMFYWRHKDESTNQGCP*")
 	#set up the empty plot space for the main panel
 	op <- par(cex=.6,las=1,mar=c(5,5,0,0)+.1)
 	plot(NA,type="n",
-		xlim=c(-3.5,length(wt.aa)+1),ylim=c(0,length(aas)+1),axes=FALSE,
+		xlim=c(startPos-4.5,endPos+1),ylim=c(0,length(aas)+1),axes=FALSE,
 		xaxs="i",xlab="AA position",ylab="AA residue",main=""
 	)
 	#add x and y axes
-	axis(1,c(1,seq(5,length(wt.aa),5)))
+	# axis(1,c(1,seq(5,length(wt.aa),5)))
+	axis(1,seq((startPos %/% 5)*5,(endPos%/%5)*5,5))
 	axis(2,at=1:21,labels=rev(aas))
 
-	#add amino acid group labels
-	text(-1,c(17.5,9),c("hydrophobic","polar"),srt=90)
-	text(-2.33,c(9.5,12),c("-","+"),srt=90)
-	arrows(-1.66,c(4.6,13.6),-1.66,c(13.4,21.4),length=.02,angle=90,code=3)
-	arrows(-3,c(8.6,10.6),-3,c(10.4,13.4),length=.02,angle=90,code=3)
+	# #add amino acid group labels
+	# text(-1,c(17.5,9),c("hydrophobic","polar"),srt=90)
+	# text(-2.33,c(9.5,12),c("-","+"),srt=90)
+	# arrows(-1.66,c(4.6,13.6),-1.66,c(13.4,21.4),length=.02,angle=90,code=3)
+	# arrows(-3,c(8.6,10.6),-3,c(10.4,13.4),length=.02,angle=90,code=3)
+	text(startPos-2,c(17.5,9),c("hydrophobic","polar"),srt=90)
+	text(startPos-3.33,c(9.5,12),c("-","+"),srt=90)
+	arrows(startPos-2.66,c(4.6,13.6),startPos-2.66,c(13.4,21.4),length=.02,angle=90,code=3)
+	arrows(startPos-4,c(8.6,10.6),startPos-4,c(10.4,13.4),length=.02,angle=90,code=3)
 
 	#draw gray background if desired
 	if (grayBack) {
-		rect(.5,.5,length(wt.aa)+.5,length(aas)+.5,col="gray",border=NA)
+		rect(startPos-.5,.5,endPos+.5,length(aas)+.5,col="gray",border=NA)
 	}
 
 	#supplement missing wt-positions
-	for (i in 1:length(wt.aa)) {
-		aa <- wt.aa[[i]]
+	for (i in startPos:endPos) {
+		aa <- wt.aa[[i-startPos+1]]
 		if (!any(pos==i & mut.aa==aa,na.rm=TRUE)) {
 			pos <- c(pos,i)
 			mut.aa <- c(mut.aa,aa)
@@ -129,7 +149,7 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	# cols <- colRamp[colIdx]
 
 	#change wt positions to gold color
-	cols[which(mut.aa==wt.aa[pos])] <- "lightgoldenrod1"
+	cols[which(mut.aa==wt.aa[pos-startPos+1])] <- "lightgoldenrod1"
 
 	#draw the heatmap rectangles
 	rect(x-.5,y-.5,x+.5,y+.5,col=cols,border=NA)
@@ -201,25 +221,28 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	par(cex=.6,mar=c(0,5,1,0)+.1)
 	plot(
 		0,type="n",
-		xlim=c(-3.5,length(wt.aa)+1),
+		xlim=c(startPos-4.5,endPos+1),
+		# xlim=c(-3.5,length(wt.aa)+1),
 		ylim=c(0,1),
 		axes=FALSE,xlab="",xaxs="i",
 		ylab="pos/neutral/neg"
 	)
 	# n <- length(wt.aa)
 	n <- nrow(barcums)
-	if (n != length(wt.aa)) {
-		warning("WT sequence does not match length of matrix!")
-	}
+	# if (n != length(wt.aa)) {
+	# 	warning("WT sequence does not match length of matrix!")
+	# }
 
 	#draw gray background if desired
 	if (grayBack) {
 		rect(.5,0,length(wt.aa)+.5,1,col="gray",border=NA)
 	}
 
+	xs <- as.integer(rownames(barcums))
+
 	for (i in 1:11) {
 		# rect(1:n-.5,barcums[,i],1:n+.5,barcums[,i]+barvals[,i],col=colRamp[[i]],border=NA)	
-		rect(1:n-.5,barcums[,i],1:n+.5,barcums[,i+1],col=cm(binMids[[i]]),border=NA)	
+		rect(xs-.5,barcums[,i],xs+.5,barcums[,i+1],col=cm(binMids[[i]]),border=NA)	
 	}
 	axis(2)
 	par(op)
