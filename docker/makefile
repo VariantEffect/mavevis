@@ -28,12 +28,12 @@ clean:
 	docker stop mavevis&&docker container rm mavevis
 
 run:
-	nohup docker run -t -p 80:80 --name mavevis $(USER)/mavevis:$(COMMIT) &
+	nohup docker run -t -p 80:80 --name mavevis $(USER)/mavevis:latest &
 
 runwmount:
 	nohup docker run -t -p 80:80 --name mavevis \
 		--mount type=bind,source=$(PROJECTDIR),target=/projects,readonly \
-		$(USER)/mavevis:$(COMMIT) &
+		$(USER)/mavevis:latest &
 
 push:
 	docker push $(USER)/mavevis:$(COMMIT)
