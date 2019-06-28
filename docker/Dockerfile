@@ -20,7 +20,8 @@
 #
 # A makefile is provided to assist with building and running
 
-FROM ubuntu:16.04
+FROM ubuntu:latest
+# FROM ubuntu:16.04
 MAINTAINER Jochen Weile <jochenweile@gmail.com>
 ARG UPDATE_RPKG=0
 
