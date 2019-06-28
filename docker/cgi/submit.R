@@ -33,7 +33,8 @@ launcher.loc <- "/var/www/html/mavevis/mavevis_launcher.R"
 postdata <- readPOST()
 
 #check that minimal parameters were supplied
-if (!all(c("scoresetID","uniprot","pdb","mainChain") %in% names(postdata))) {
+if (!(("scoresetID" %in% names(postdata)) & any(c("uniprot","WT") %in% names(postdata)))) {
+# if (!all(c("scoresetID","uniprot","pdb","mainChain") %in% names(postdata))) {
 	#otherwise respond with error message
 	respond400("Missing arguments!")
 	#exit status must be 0 to avoid "Internal Server Error"

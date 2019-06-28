@@ -77,22 +77,22 @@ $(document).ready(function(){
 
 
 	/**
-	 * checks if the 
+	 * checks if the input is sufficient to submit
 	 */
 	function checkIfReady() {
-		//are ssid and uniprot fields set?
-		if (ssid && uniprot) {
-			//does the uniprot entry match the wt sequence?
-
-			//are the pdb fields set?
-			if (pdbIDs && pdbMainChains) {
-
-				//enable the submit button
-				// $("#submitButton").prop('disabled', false);
-				$("#submitButton").button("enable");
-
-			}
+		if (ssid && wt) {
+			$("#submitButton").button("enable");
 		}
+		// //are ssid and uniprot fields set?
+		// if (ssid && uniprot) {
+		// 	//TODO: does the uniprot entry match the wt sequence?
+		// 	//are the pdb fields set?
+		// 	if (pdbIDs && pdbMainChains) {
+		// 		//enable the submit button
+		// 		// $("#submitButton").prop('disabled', false);
+		// 		$("#submitButton").button("enable");
+		// 	}
+		// }
 	}
 
 	/**
@@ -172,16 +172,17 @@ $(document).ready(function(){
 	function submit() {
 
 		//Express these values as R-compatible strings
+		var uniprotS = uniprot ? uniprot : "NULL";
 		var wtR = wt ? wt : "NULL";
 		var synR = synMed ? synMed : "NULL";
 		var stopR = stopMed ? stopMed : "NULL";
-		var pdbS = pdbIDs.toString();
-		var mcS = pdbMainChains.toString();
+		var pdbS = pdbIDs ? pdbIDs.toString() : "NULL";
+		var mcS = pdbMainChains ? pdbMainChains.toString() : "NULL";
 
 
 		appendConsole(
 			"scoresetID = "+ssid+
-			"\nuniprot = " + uniprot+
+			"\nuniprot = " + uniprotS+
 			"\npdb = " + pdbS+
 			"\nmainChain = " + mcS+
 			"\nWT = " + wtR+
@@ -195,7 +196,7 @@ $(document).ready(function(){
 		$.post("submit.R",
 		{
 			scoresetID: ssid,
-			uniprot: uniprot,
+			uniprot: uniprotS,
 			pdb: pdbS,
 			mainChain: mcS,
 			WT: wtR,
@@ -312,6 +313,7 @@ $(document).ready(function(){
 		resetMost();
 
 		ssid = items.urn;
+		wt = items.wt;
 
 		if (items.type != "Protein coding") {
 			reset();
@@ -348,8 +350,6 @@ $(document).ready(function(){
 				stopMed = $(this).val();
 			}).trigger("change");
 		}
-		//store wt sequence and offset
-		wt = items.wt;
 		//If offset is NA, need to show offset input box
 		// console.log(items.offset);
 		if (items.offset != null && items.offset != 'undefined') {
@@ -361,6 +361,8 @@ $(document).ready(function(){
 		} else {
 			$("#offsetOptions").show();
 		}
+
+		checkIfReady();
 
 	}
 
@@ -374,32 +376,6 @@ $(document).ready(function(){
 		select: function(event, ui) {
 
 			selectScoreset(ui.item);
-			// resetMost();
-
-			// ssid = ui.item.ssid;
-			// //if a uniprot ID is available, automatically fill it in
-			// if (ui.item.uniprot) {
-			// 	$("#uniprot").val(ui.item.uniprot).trigger("change");
-			// }
-			// //either way show the uniprot field, so the user can change it
-			// $("#uniprotOptions").show();
-			// //if the synonymous scores need to be manually defined, show the required field
-			// if (ui.item.syn == "manual") {
-			// 	$("#synOptions").show();
-			// 	$("#synMed").change(function() {
-			// 		synMed = $(this).val();
-			// 	}).trigger("change");
-			// }
-			// //if the stop scores need to be manually defined, show the required field
-			// if (ui.item.stop == "manual") {
-			// 	$("#stopOptions").show();
-			// 	$("#stopMed").change(function() {
-			// 		stopMed = $(this).val();
-			// 	}).trigger("change");
-			// }
-			// //store wt sequence and offset
-			// wt = ui.item.wt;
-			// offset = ui.item.offset;
 		}
 	});
 

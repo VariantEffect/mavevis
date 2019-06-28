@@ -23,9 +23,9 @@
 ## This script allows execution of the mavevis dashboard() function 
 ## from the command line. 
 ## 
-## Usage: Rscript mavevis_launcher.R scoresetID=<ssid> uniprot=<uniprot>
-##     pdb=<pdb-ids> mainChain=<chains> [WT=<seq> | seqOffset=<num> |
-##     synMed=<num> | stopMed=<num> | PngRes=<num> | outFormats={png|pdf}]
+## Usage: Rscript mavevis_launcher.R scoresetID=<ssid> [ uniprot=<uniprot>
+##     pdb=<pdb-ids> mainChain=<chains> WT=<seq> | seqOffset=<num> |
+##     synMed=<num> | stopMed=<num> | PngRes=<num> | outFormats={png|pdf} ]
 ############################################################################
 
 library("mavevis")
@@ -45,13 +45,24 @@ keepNull <- function(x) if (is.null(x) || x=="NULL") NULL else if (is.na(x)) NA 
 
 #Retrieve arguments
 ssid <- keepNull(getArg("scoresetID",required=TRUE))
-uniprotId <- keepNull(getArg("uniprot",required=TRUE))
+uniprotId <- keepNull(getArg("uniprot",default=NULL))
+# uniprotId <- keepNull(getArg("uniprot",required=TRUE))
 
-pdbArg <- keepNull(getArg("pdb",required=TRUE))
-pdbs <- strsplit(pdbArg,",")[[1]]
+pdbArg <- keepNull(getArg("pdb",default=NULL))
+# pdbArg <- keepNull(getArg("pdb",required=TRUE))
+if (inherits(pdbArg,"character")) {
+	pdbs <- strsplit(pdbArg,",")[[1]]
+} else {
+	pdbs <- NULL
+}
 
-mainChainArg <- keepNull(getArg("mainChain",required=TRUE))
-mainChains <- strsplit(mainChainArg,",")[[1]]
+mainChainArg <- keepNull(getArg("mainChain",default=NULL))
+# mainChainArg <- keepNull(getArg("mainChain",required=TRUE))
+if (inherits(mainChainArg,"character")) {
+	mainChains <- strsplit(mainChainArg,",")[[1]]
+} else {
+	mainChains <- NULL
+}
 
 overrideCache <- as.logical(keepNull(getArg("overrideCache",default=FALSE)))
 wt.seq <- keepNull(getArg("WT",default=NULL))
@@ -68,8 +79,8 @@ cat(
 	"Starting job",jobId,"with parameters:\n",
 	"ssid =",ssid,"\n",
 	"uniprotId =",uniprotId,"\n",
-	"pdbs =",pdbs,"\n",
-	"mainChains =",mainChains,"\n",
+	"pdbs =",pdbArg,"\n",
+	"mainChains =",mainChainArg,"\n",
 	"wt.seq =",wt.seq,"\n",
 	"seq.offset =",seq.offset,"\n",
 	"syn.med =",syn.med,"\n",

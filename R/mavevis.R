@@ -82,7 +82,7 @@ getCacheFile <- function(name) {
 #'   syn.med=1,stop.med=0
 #' )
 #' }
-dashboard <- function(ssid,uniprotId,pdbs,mainChains,
+dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 		wt.seq=NULL,seq.offset=0,syn.med=NULL,stop.med=NULL,
 		overrideCache=FALSE,outFormats=c("pdf","png"),pngRes=100,outID=ssid) {
 	
@@ -95,10 +95,6 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 
 	##########################
 	# Check parameter validity
-
-	# if (!grepl("^SCS\\d{6}\\w{1}\\.\\d+$",ssid)) {
-	# 	stop("Error: \'",ssid,"\' is not a valid scoreset ID.")
-	# }
 
 	for (pdb in pdbs) {
 		if (!grepl("^[A-Za-z0-9]{4}$",pdb)) {
@@ -126,23 +122,6 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		seq.offset <- 0
 	}
 
-	#Check if WT seq is DNA or protein
-	if (!is.null(wt.seq)) {
-		if (grepl("^[ACGT]+$",wt.seq)) {
-			#set flag to translate to protein later
-			dnaTranslate <- TRUE
-		} else if (grepl("^[ACDEFGHIKLMNPQRSTVWY]+$",wt.seq)) {#it's already protein
-			aa.seq <- wt.seq
-			dnaTranslate <- FALSE
-		} else {
-			stop("The supplied WT sequence is neither valid DNA nor Protein.")
-		}
-	} else {
-		dnaTranslate <- FALSE
-		cat("No WT sequence provided. Obtaining Uniprot sequence.")
-		aa.seq <- getUniprotSeq(uniprotId)
-	}
-
 	# syn.med <- as.numeric(getArg("synMed",default=NULL))
 	if (length(syn.med > 0) && is.na(syn.med)) {
 		stop("Parameter 'synMed' must be a numerical value!")
@@ -166,32 +145,36 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		stop("PNG resolutions below 50 DPI and above 400 DPI are not allowed.")
 	}
 
-	# new.trt <- function() {
-	# 	library("hash")
-	# 	ct <- read.delim("res/codontable.txt",header=FALSE)
-	# 	aas <- ct[,2]
-	# 	codons <- strsplit(ct[,3],"\\|")
-	# 	trtable <- hash()
-	# 	for (i in 1:nrow(ct)) {
-	# 		for (codon in codons[[i]]){
-	# 			trtable[[codon]] <- aas[[i]]
-	# 		}
-	# 	}
-	# 	trtable
-	# }
-	# trt <- new.trt()
-
-	#Translate if necessary
-	if (dnaTranslate) {
-		cat("Translating WT sequence to Protein...\n")
-		data("trtable")
-		cstarts <- seq(1,nchar(wt.seq),3)
-		aa.seq <- paste(sapply(cstarts,function(cs) trtable[[substr(wt.seq,cs,cs+2)]]),collapse="")
+	#Check if WT seq is DNA or protein
+	if (!is.null(wt.seq)) {
+		if (grepl("^[ACGT]+$",wt.seq)) {
+			#set flag to translate to protein later
+			# dnaTranslate <- TRUE
+			cat("Translating WT sequence to Protein...\n")
+			data("trtable")
+			cstarts <- seq(1,nchar(wt.seq),3)
+			aa.seq <- paste(sapply(cstarts,function(cs) trtable[[substr(wt.seq,cs,cs+2)]]),collapse="")
+		} else if (grepl("^[ACDEFGHIKLMNPQRSTVWY]+$",wt.seq)) {#it's already protein
+			aa.seq <- wt.seq
+			# dnaTranslate <- FALSE
+		} else {
+			stop("The supplied WT sequence is neither valid DNA nor Protein.")
+		}
+	} else {
+		# dnaTranslate <- FALSE
+		if (!is.null(uniprotId)) {
+			cat("No WT sequence provided. Obtaining Uniprot sequence.")
+			aa.seq <- getUniprotSeq(uniprotId)
+		} else {
+			stop("No WT sequence or uniprot ID provided. Unable to proceed.")
+		}
 	}
+	wt.aa <- toChars(aa.seq)
 
-	#split sequence into individual characters
-	wt.aa <- sapply(1:nchar(aa.seq),function(i)substr(aa.seq,i,i))
 
+	###############
+	# Load data
+	###############
 
 	cacheFile <- getCacheFile(paste0(ssid,".csv"))
 	if (!file.exists(cacheFile) || overrideCache) {
@@ -208,7 +191,6 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		data <- read.csv(cacheFile)
 	}
 
-
 	mutCacheFile <- getCacheFile(paste0(ssid,"_muts.csv"))
 	if (!file.exists(mutCacheFile) || overrideCache) {
 
@@ -219,33 +201,6 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		} else {
 			stop("Dataset does not describe AA-level variation. Not yet implemented!")
 		}
-
-		# # Check if variants are described at nucleotide-level, amino acid-level, or both
-		# if (regexpr("c\\..+ \\(p\\..+\\)$",data$hgvs[[1]]) > 0) {
-		# 	splits <- strsplit(data$hgvs," \\(")
-		# 	if (all(sapply(splits,length)!=2)) {
-		# 		stop("Inconsistent HGVS reporting! Some entries do not specify coding- and protein-level variation!")
-		# 	}
-		# 	# mut.coding <- sapply(splits,`[[`,1)
-		# 	mut.prot <- as.vector(sapply(sapply(splits,`[[`,2), function(s) 
-		# 		#trim trailing parentheses
-		# 		if (substr(s,nchar(s),nchar(s))==")") substr(s,1,nchar(s)-1) else s
-		# 	))
-		# 	# mut.coding <- parseHGVS(mut.coding)
-		# 	mut.prot <- parseHGVS(mut.prot,aacode=1)
-		# # or if they are only reported at one level
-		# } else if (regexpr("^c\\.\\S+$",data$hgvs[[1]],perl=TRUE) > 0) {
-		# 	stop("Dataset does not describe AA-level variation. Not yet implemented!")
-		# 	mut.coding <- parseHGVS(data$hgvs)
-		# 	#TODO: infer AA changes
-		# 	# mut.prot <- data.frame(type=rep(NA,nrow(data)),pos=rep(NA,nrow(data)),
-		# 	# 	ancestral=rep(NA,nrow(data)),variant=rep(NA,nrow(data)))
-		# } else if (regexpr("^p\\.\\S+$",data$hgvs[[1]],perl=TRUE) > 0) {
-		# 	mut.prot <- parseHGVS(data$hgvs,aacode=1)
-		# 	# mut.coding <- data.frame(pos=rep(NA,nrow(data)),ancestral=rep(NA,nrow(data)),variant=rep(NA,nrow(data)))
-		# } else {
-		# 	stop("HGVS column does not parse!")
-		# }
 
 		cat("Caching scoreset locally...\n")
 		#row names must be saved also, to ensure correct index resolution!
@@ -260,9 +215,6 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 	if ("multiPart" %in% colnames(mut.prot)) {
 		index.prot <- as.integer(sapply(strsplit(rownames(mut.prot),"\\."),`[[`,1))
 		nmut.prot <- table(index.prot)
-		#actually we don't want to filter synonymous here
-		# syns <- with(mut.prot,unique(index.prot[which(type %in% c("synonymous","invalid","NA"))]))
-		# nmut.prot[syns] <- 0
 	} else {#no multi-mutations should exist in this case
 		if (nrow(data) != nrow(mut.prot)) {
 			stop("HGVS parse result does not match data! If you see this, report this as a bug.")
@@ -271,21 +223,12 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		nmut.prot <- rep(1,nrow(data))
 	}
 
-	#Handle deviating error columns
-	if ("se" %in% colnames(data)) {
-		errCol <- as.numeric(data$se)
-	} else if ("SE" %in% colnames(data)) {
-		errCol <- as.numeric(data$SE)
-	} else if ("stderr" %in% colnames(data)) {
-		errCol <- as.numeric(data$stderr)
-	} else if ("sd" %in% colnames(data)) {
-		errCol <- as.numeric(data$sd)
-	} else if ("SD" %in% colnames(data)) {
-		errCol <- as.numeric(data$SD)
-	} else if ("stdev" %in% colnames(data)) {
-		errCol <- as.numeric(data$stdev)
-	} else {
+	#Handle inconsistent error column names
+	errColIdx <- which(colnames(data) %in% c("se","SE","stderr","sem","SEM","sd","SD","stdev","std","STD"))
+	if (length(errColIdx) == 0) {
 		errCol <- NULL
+	} else {
+		errCol <- as.numeric(data[,errColIdx[[1]]])
 	}
 
 	cat("Filtering for single mutant variants...\n")
@@ -322,56 +265,61 @@ dashboard <- function(ssid,uniprotId,pdbs,mainChains,
 		}
 	}
 
-	cat("Obtaining conservation information...\n")
-	cons <- calc.conservation(uniprotId)
+	if (!is.null(uniprotId)) {
+		cat("Obtaining conservation information...\n")
+		cons <- calc.conservation(uniprotId)
 
-	cat("Reading structural features...\n")
-	# strucfeats <- read.csv(paste0("strucfeats_",pdb,".csv"))
-	strucfeats <- mapply(calc.strucfeats,pdb=pdbs,main.chain=mainChains,SIMPLIFY=FALSE)
+		td <- new.trackdrawer(l=length(wt.aa),nox=TRUE)
+		td$add.constrack(cons)
 
-	#truncate features to scanned domain
-	frag.l <- max(sm.mut$start,na.rm=TRUE)-min(sm.mut$start,na.rm=TRUE)
-	domain.range <- seq.offset:(seq.offset+frag.l)
-	strucfeats <- lapply(strucfeats,function(sf)sf[domain.range,])
-	cons <- cons[domain.range]
+		if (!is.null(pdbs)) {
+			cat("Obtaining structural features...\n")
+			strucfeats <- mapply(calc.strucfeats,pdb=pdbs,main.chain=mainChains,SIMPLIFY=FALSE)
 
-	sscols <- lapply(strucfeats,`[`,,"secstruc")
-	fillup.max <- max(sapply(sscols,length))
-	sscols <- lapply(sscols,function(xs) c(xs,rep(NA,fillup.max-length(xs))))
-	if (length(sscols) > 1) {
-		ss.consensus <- apply(do.call(cbind,sscols),1,function(xs) if (!all(is.na(xs))) names(which.max(table(xs))) else NA)
-	} else {
-		ss.consensus <- sscols[[1]]
-	}
+			#truncate features to scanned domain
+			frag.l <- max(sm.mut$start,na.rm=TRUE)-min(sm.mut$start,na.rm=TRUE)
+			domain.range <- seq.offset:(seq.offset+frag.l)
+			strucfeats <- lapply(strucfeats,function(sf)sf[domain.range,])
+			cons <- cons[domain.range]
 
-	accols <- lapply(strucfeats,`[`,,"all.rel")
-	fillup.max <- max(sapply(sscols,length))
-	accols <- lapply(accols,function(xs) c(xs,rep(NA,fillup.max-length(xs))))
-	acc.consensus <- apply(do.call(cbind,accols),1,median,na.rm=TRUE)
-
-	td <- new.trackdrawer(l=length(wt.aa),nox=TRUE)
-	td$add.constrack(cons)
-	td$add.ss.track(ss.consensus)
-	td$add.track(acc.consensus,"Rel. ASA","steelblue3")
-	for (sf in strucfeats) {
-		burial.columns <- which(grepl("rel.burial",colnames(sf)))
-		if (length(burial.columns) > 0) {
-			for (col in burial.columns) {
-				prot <- sub("rel.burial.","",colnames(sf)[[col]])
-				td$add.track(sf[,col],prot,"orange",maxVal=1)
+			sscols <- lapply(strucfeats,`[`,,"secstruc")
+			fillup.max <- max(sapply(sscols,length))
+			sscols <- lapply(sscols,function(xs) c(xs,rep(NA,fillup.max-length(xs))))
+			if (length(sscols) > 1) {
+				ss.consensus <- apply(do.call(cbind,sscols),1,function(xs) if (!all(is.na(xs))) names(which.max(table(xs))) else NA)
+			} else {
+				ss.consensus <- sscols[[1]]
 			}
+
+			accols <- lapply(strucfeats,`[`,,"all.rel")
+			fillup.max <- max(sapply(sscols,length))
+			accols <- lapply(accols,function(xs) c(xs,rep(NA,fillup.max-length(xs))))
+			acc.consensus <- apply(do.call(cbind,accols),1,median,na.rm=TRUE)
+
+			td$add.ss.track(ss.consensus)
+			td$add.track(acc.consensus,"Rel. ASA","steelblue3")
+			for (sf in strucfeats) {
+				burial.columns <- which(grepl("rel.burial",colnames(sf)))
+				if (length(burial.columns) > 0) {
+					for (col in burial.columns) {
+						prot <- sub("rel.burial.","",colnames(sf)[[col]])
+						td$add.track(sf[,col],prot,"orange",maxVal=1)
+					}
+				}
+			}
+		} else {
+			cat("No PDB references supplied. Skipping structure tracks.\n")
 		}
+	} else {
+		cat("No uniprot ID supplied. Skipping all tracks.\n")
+		td <- NULL
 	}
 
-	# td$draw()
 
 	cat("Plotting...")
 
-	# wt.aa <- c(wt.aa,rep("*",30))
-
 	img.width <- length(wt.aa) * 0.13 + 3
-	img.height <- 4.5 + 0.13 * td$num.tracks()
-
+	img.height <- 4.5 + 0.13 * if(is.null(td)) 0 else td$num.tracks()
 
 	for (outFormat in outFormats) {
 		cat(".")
