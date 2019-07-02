@@ -114,6 +114,7 @@ $(document).ready(function(){
 		$("#submitButton").button("disable");
 		// $("#submitButton").prop('disabled', true);
 		$("#outputpanel").hide();
+		$("#legendbox").hide();
 
 		$("#uniprot").val("");
 		uniprot=null;
@@ -298,6 +299,7 @@ $(document).ready(function(){
 		$("#imagepanel").show();
 		$("#downloadpanel").show();
 		$("#mainProgressbar").hide();
+		$("#legendbox").show();
 		//should already be visible, but just in case...
 		$("#outputpanel").show();
 

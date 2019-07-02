@@ -50,6 +50,7 @@ label.left {
 }
 
 .main {
+	max-width:100%;
 	width:100%;
 	display: flex;
 	max-height: 800px;
@@ -91,8 +92,15 @@ label.left {
 	min-width:350px;
 }
 
+#legendbox {
+	text-align:center;
+	/*float: left;*/
+	width:350px;
+	min-width:350px;
+}
+
 #right {
-	width:100%;
+	max-width:calc(100% - 350px);
 	flex: 1;
 	display: flex;
 	flex-direction: column;
