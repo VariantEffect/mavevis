@@ -72,7 +72,9 @@ getCacheFile <- function(name) {
 #'    Using two or all three at once is allowed and will result in multiple output files.
 #' @param pngRes Resolution of PNG output in DPI. Defaults to 100.
 #' @param outID a name for the output file to which the plot will be written. Defaults to ssid.
-#' @return NULL
+#' @param pixelMap boolean flag, whether to generate a pixel map for a png image. The map will
+#'    be written to an Rdata file named according to the outID parameter. Defaults to \code{FALSE}.
+#' @return \code{NULL}.
 #' @export
 #' @examples
 #' \dontrun{
@@ -84,7 +86,8 @@ getCacheFile <- function(name) {
 #' }
 dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 		wt.seq=NULL,seq.offset=0,syn.med=NULL,stop.med=NULL,
-		overrideCache=FALSE,outFormats=c("pdf","png"),pngRes=100,outID=ssid) {
+		overrideCache=FALSE,outFormats=c("pdf","png"),pngRes=100,outID=ssid,
+		pixelMap=FALSE) {
 	
 	library("rapimave")
 	library("hgvsParseR")
@@ -330,9 +333,13 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 				height=img.height*pngRes,res=pngRes),
 			svg=svg(getCacheFile(paste0("result_",outID,".svg")),width=img.width,height=img.height)
 		)
-		genophenogram(wt.aa=wt.aa,pos=sm.mut$start,mut.aa=sm.mut$variant,
+		pxMap <- genophenogram(wt.aa=wt.aa,pos=sm.mut$start,mut.aa=sm.mut$variant,
 			score=sm.data$score,error=sm.errCol,syn.med=syn.med,stop.med=stop.med,
-			grayBack=TRUE,img.width=img.width,tracks=td)
+			grayBack=TRUE,img.width=img.width,tracks=td,pixelMap=pixelMap)
+		if (pixelMap && !is.null(pxMap)) {
+			mapFile <- getCacheFile(paste0("result_",outID,"_pxmap_",outFormat,".Rdata"))
+			save(pxMap,file=mapFile)
+		}
 		if (outFormat != "x11") invisible(dev.off())
 	}
 

@@ -25,7 +25,8 @@
 ## 
 ## Usage: Rscript mavevis_launcher.R scoresetID=<ssid> [ uniprot=<uniprot>
 ##     pdb=<pdb-ids> mainChain=<chains> WT=<seq> | seqOffset=<num> |
-##     synMed=<num> | stopMed=<num> | PngRes=<num> | outFormats={png|pdf} ]
+##     synMed=<num> | stopMed=<num> | PngRes=<num> | outFormats={png|pdf} |
+##     pixelMap=<bool>]
 ############################################################################
 
 library("mavevis")
@@ -74,6 +75,13 @@ stop.med <- keepNull(getArg("stopMed",default=NULL))
 if (!is.null(stop.med)) stop.med <- as.numeric(stop.med)
 outFormats <- strsplit(keepNull(getArg("outFormats",default="pdf,png,svg")),",")[[1]]
 pngRes <- as.numeric(keepNull(getArg("pngRes",default=100)))
+if (is.na(pngRes)) {
+	pngRes <- 100
+}
+pixelMap <- as.logical(getArg("pixelMap",default=FALSE))
+if (is.na(pixelMap)) {
+	pixelMap <- FALSE
+}
 
 cat(
 	"Starting job",jobId,"with parameters:\n",
@@ -87,14 +95,16 @@ cat(
 	"stop.med =",stop.med,"\n",
 	"overrideCache =",overrideCache,"\n",
 	"outFormats =",outFormats,"\n",
-	"pngRes =",pngRes,"\n"
+	"pngRes =",pngRes,"\n",
+	"pixelMap =",pixelMap,"\n"
 )
 
 #start dashboard function
 dashboard(
 	ssid=ssid,uniprotId=uniprotId,pdbs=pdbs,mainChains=mainChains,
 	wt.seq=wt.seq,seq.offset=seq.offset,syn.med=syn.med,stop.med=stop.med,
-	overrideCache=overrideCache,outFormats=outFormats,pngRes=pngRes,outID=jobId
+	overrideCache=overrideCache,outFormats=outFormats,pngRes=pngRes,outID=jobId,
+	pixelMap=pixelMap
 )
 
 cat("\nJob completed successfully!\n")

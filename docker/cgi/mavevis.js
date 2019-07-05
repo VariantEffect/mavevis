@@ -70,6 +70,13 @@ $(document).ready(function(){
 
 	$("#consolepanel").hide();
 
+	/*
+	 * Enable JQueryUI tooltips
+	 */
+	$(document).tooltip({
+		track: true
+	});
+
 
 	////////////////
 	// Submission //
@@ -204,7 +211,8 @@ $(document).ready(function(){
 			seqOffset: offset,
 			synMed: synR,
 			stopMed: stopR,
-			pngRes: 80
+			pngRes: 80,
+			pixelMap : "TRUE"
 		})
 		.done(function(rawdata) {
 			data = JSON.parse(rawdata);
@@ -285,7 +293,9 @@ $(document).ready(function(){
 			output: "url"
 		})
 		.done(function(url) {
-			$("#imagepanel").html('<img src="'+url+'" alt="result"/>')
+			//set the download target
+			$("#jobIDHolder").val(currJobID);
+			fetchMapAndCombine(url);
 		})
 		.fail(function(xhr, status, error) {
 			// alert(error);
@@ -293,16 +303,41 @@ $(document).ready(function(){
 		});
 
 		//set the download target
-		$("#jobIDHolder").val(currJobID);
+		// $("#jobIDHolder").val(currJobID);
 
+		// $("#imagepanel").show();
+		// $("#downloadpanel").show();
+		// $("#mainProgressbar").hide();
+		// $("#legendbox").show();
+		// //should already be visible, but just in case...
+		// $("#outputpanel").show();
 
-		$("#imagepanel").show();
-		$("#downloadpanel").show();
-		$("#mainProgressbar").hide();
-		$("#legendbox").show();
-		//should already be visible, but just in case...
-		$("#outputpanel").show();
+	}
 
+	function fetchMapAndCombine(url) {
+		$.post("getMap.R",{
+			jobID: currJobID
+		}).done(function(map) {
+			$("#imagepanel").html(
+				'<img src="'+url+'" alt="result" useMap="#pxmap"/>' +
+				map
+			)
+			$("#imagepanel").show();
+			$("#downloadpanel").show();
+			$("#mainProgressbar").hide();
+			$("#legendbox").show();
+			$("#outputpanel").show();
+		}).fail(function(xhr, status, error) {
+			showError(error);
+			$("#imagepanel").html(
+				'<img src="'+url+'" alt="result"/>'
+			)
+			$("#imagepanel").show();
+			$("#downloadpanel").show();
+			$("#mainProgressbar").hide();
+			$("#legendbox").show();
+			$("#outputpanel").show();
+		});
 	}
 
 

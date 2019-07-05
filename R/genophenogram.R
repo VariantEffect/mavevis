@@ -30,26 +30,37 @@
 #' @param img.width optional parameter to inform the drawing function of the chosen image width,
 #'      allowing it to adjust the size of the legend
 #' @param tracks an optional trackdrawer object to add structural information to the plot
+#' @param pixelMap boolean flag, whether or not to return a pixel coordinate map object
 #' @export
-#' @return NULL
+#' @return NULL, or a pixel coordinate map, i.e. a list with two data frames
 genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med, 
-	error=NULL, a=0, grayBack=FALSE, img.width=12, tracks=NULL) {
+	error=NULL, a=0, grayBack=FALSE, img.width=12, tracks=NULL, pixelMap=FALSE) {
 
 	library("yogitools")
 
 	#determine if wt.aas covers position range exactly or describes full ORF
 	coverLength <- max(pos,na.rm=TRUE)-min(pos,na.rm=TRUE)+1
 	if (length(wt.aa) > coverLength) {
+		#a longer wt seq indicates the user wants the full maps (despite small coverage)
 		#make sure that the wt.aa still ranges to the end
 		if (max(pos,na.rm=TRUE) <= length(wt.aa)) {
+			#the position where we start drawing
 			startPos <- 1
+			#and end drawing
 			endPos <- length(wt.aa)
 		} else {
 			stop("wt.aa does not match position range!")
 		}
 	} else {
+		#if it's equal or less we just draw the coverage range
 		startPos <- min(pos,na.rm=TRUE)
 		endPos <- max(pos,na.rm=TRUE)
+		if (length(wt.aa) < coverLength) {
+			#also if the WT sequence isn't long enough we need to warn the user
+			warning("wt.aa does not match position range! Supplementing...")
+			#and supplement the sequence
+			wt.aa <- c(wt.aa,rep("*",coverLength-length(wt.aa)))
+		}
 	}
 
 	#define bezier transformation function
@@ -154,6 +165,19 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	#draw the heatmap rectangles
 	rect(x-.5,y-.5,x+.5,y+.5,col=cols,border=NA)
 
+	#if user requested a pixel map of the plot, generate one
+	if (pixelMap) {
+		pxmap <- list()
+		pxmap$main <- data.frame(
+			pos=x, wt=wt.aa[x-startPos+1], aa=mut.aa,
+			score=score, error=if(!is.null(error)) error else NA,
+			x0=round(grconvertX(x-0.5,"user","device")),
+			x1=round(grconvertX(x+0.5,"user","device")),
+			y0=round(grconvertY(y-0.5,"user","device")),
+			y1=round(grconvertY(y+0.5,"user","device"))
+		)
+	}
+
 	#draw error bars (if provided)
 	if (!is.null(error)) {
 		#normalize to distance between synonymous and nonsense
@@ -244,6 +268,21 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 		# rect(1:n-.5,barcums[,i],1:n+.5,barcums[,i]+barvals[,i],col=colRamp[[i]],border=NA)	
 		rect(xs-.5,barcums[,i],xs+.5,barcums[,i+1],col=cm(binMids[[i]]),border=NA)	
 	}
+
+	#if user requested a pixel map of the plot, generate one for summary bar as well
+	if (pixelMap) {
+		pxmap$summary <- cbind(
+			data.frame(pos=xs, wt=wt.aa[xs-startPos+1]),
+			do.call(rbind,tapply(score,x,summary,na.rm=TRUE)),
+			data.frame(
+				x0=round(grconvertX(xs-0.5,"user","device")),
+				x1=round(grconvertX(xs+0.5,"user","device")),
+				y0=round(grconvertY(0,"user","device")),
+				y1=round(grconvertY(1,"user","device"))
+			)
+		)
+	}
+
 	axis(2)
 	par(op)
 
@@ -270,7 +309,11 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 
 	}
 	
-	return(invisible(NULL))
+	if (pixelMap) {
+		return(pxmap)
+	} else {
+		return(invisible(NULL))
+	}
 }
 
 

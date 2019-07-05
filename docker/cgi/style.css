@@ -220,6 +220,10 @@ input[type=number]{
 	background-color: rgba(255,255,255,0.8)
 }
 
+.ui-tooltip {
+	box-shadow: 5px 5px 10px #333333;
+}
+
 .blink {
   animation: blinker 1s linear infinite;
 }
