@@ -645,5 +645,21 @@ $(document).ready(function(){
 
 	processURLParameters();
 
+	////////////////
+	//Version tag //
+	////////////////
+
+	function addVersionTag() {
+		$.get("version.R")
+		.done(function(data,status,xhr) {
+			$("#version").text(data);
+		})
+		.fail(function(xhr,status,error) {
+			$("#version").text("?");
+		});
+	}
+
+	addVersionTag();
+
 
 });
