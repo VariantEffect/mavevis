@@ -325,7 +325,8 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 
 	cat("Plotting...")
 
-	img.width <- length(wt.aa) * 0.13 + 3
+	# img.width <- length(wt.aa) * 0.13 + 3
+	img.width <- length(wt.aa) * 0.13 + 4
 	img.height <- 4.5 + 0.13 * if(is.null(td)) 0 else td$num.tracks()
 
 	for (outFormat in outFormats) {

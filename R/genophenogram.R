@@ -80,7 +80,7 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	}
 
 	#calculate the relative space in the plot to be allocated for legends and feature tracks.
-	legend.share <- 1.4/img.width
+	legend.share <- 1.8/img.width
 	# layout(cbind(c(3,1),c(4,2)),widths=c(9.5,.5),heights=c(2,9))
 	if (is.null(tracks)) {
 		layout(cbind(c(3,1),c(4,2)),widths=c(1-legend.share,legend.share),heights=c(2,9))
@@ -93,14 +93,14 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	###########
 	aas <- toChars("AVLIMFYWRHKDESTNQGCP*")
 	#set up the empty plot space for the main panel
-	op <- par(cex=.6,las=1,mar=c(5,5,0,0)+.1)
+	op <- par(cex=.8,las=1,mar=c(5,5,0,0)+.1)
 	plot(NA,type="n",
 		xlim=c(startPos-4.5,endPos+1),ylim=c(0,length(aas)+1),axes=FALSE,
 		xaxs="i",xlab="AA position",ylab="AA residue",main=""
 	)
 	#add x and y axes
 	# axis(1,c(1,seq(5,length(wt.aa),5)))
-	axis(1,seq((startPos %/% 5)*5,(endPos%/%5)*5,5))
+	axis(1,seq((startPos %/% 5)*5,(endPos%/%5)*5,5),cex.axis=1.5)
 	axis(2,at=1:21,labels=rev(aas))
 
 	# #add amino acid group labels
@@ -199,7 +199,7 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 
 	#####Legend
 	###########
-	op <- par(cex=.6,mar=c(5,3,0,4)+.1)
+	op <- par(cex=.8,mar=c(5,3,0,4)+.1)
 	plot(NA,type="n",xlim=c(-1,1),ylim=c(0,13),axes=FALSE,xlab="",ylab="")
 	#autodetect above wt-level scores and draw appropriate legend
 	if (any(score > syn.med, na.rm=TRUE)) {#with red colors
@@ -242,14 +242,14 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	barvals <- t(apply(barvals,1,function(xs)xs/sum(xs)))
 	barcums <- cbind(0,t(apply(barvals,1,function(x)sapply(1:11,function(i)sum(x[1:i])))))
 
-	par(cex=.6,mar=c(0,5,1,0)+.1)
+	par(cex=.8,mar=c(0,5,1,0)+.1)
 	plot(
 		0,type="n",
 		xlim=c(startPos-4.5,endPos+1),
 		# xlim=c(-3.5,length(wt.aa)+1),
 		ylim=c(0,1),
 		axes=FALSE,xlab="",xaxs="i",
-		ylab="pos/neutral/neg"
+		ylab="census"
 	)
 	# n <- length(wt.aa)
 	n <- nrow(barcums)
@@ -283,7 +283,7 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 		)
 	}
 
-	axis(2)
+	axis(2,at=0:1,labels=0:1)
 	par(op)
 
 
@@ -294,7 +294,7 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 		tracks$draw()
 
 		### Track legend
-		op <- par(cex=.6,mar=c(0,3,1,4)+.1)
+		op <- par(cex=.8,mar=c(0,3,1,4)+.1)
 		plot(NA,type="n",xlim=c(-1,1),ylim=c(0,11),axes=FALSE,xlab="",ylab="")
 		orangeRamp <- colorRampPalette(c("white","orange"))(11)
 		blueRamp <- colorRampPalette(c("white","steelblue3"))(11)
@@ -302,9 +302,9 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 		rect(-1,0:10,0,1:11,col=blueRamp,border=NA)
 
 		axis(4,at=c(.5,5.5,10.5),labels=c("0%","50%","100%"))
-		mtext("relative interface burial",side=4,line=2,las=3,cex=0.7)
+		mtext("interface burial",side=4,line=2,las=3,cex=0.7)
 		axis(2,at=c(.5,5.5,10.5),labels=c("0%","50%","100%"))
-		mtext("relative surface accessibility",side=2,line=2,las=3,cex=0.7)
+		mtext("surface accessibility",side=2,line=2,las=3,cex=0.7)
 		par(op)
 
 	}
