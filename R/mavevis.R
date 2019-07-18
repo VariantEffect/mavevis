@@ -230,9 +230,13 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 	errColIdx <- which(colnames(data) %in% c("se","SE","stderr","sem","SEM","sd","SD","stdev","std","STD"))
 	if (length(errColIdx) == 0) {
 		errCol <- NULL
+		errName <- NULL
 	} else {
 		errCol <- as.numeric(data[,errColIdx[[1]]])
+		errName <- colnames(data)[errColIdx]
 	}
+
+
 
 	cat("Filtering for single mutant variants...\n")
 	#Reduce to single mutants
@@ -337,6 +341,7 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 			score=sm.data$score,error=sm.errCol,syn.med=syn.med,stop.med=stop.med,
 			grayBack=TRUE,img.width=img.width,tracks=td,pixelMap=pixelMap)
 		if (pixelMap && !is.null(pxMap)) {
+			pxMap$errName <- errName
 			mapFile <- getCacheFile(paste0("result_",outID,"_pxmap_",outFormat,".Rdata"))
 			save(pxMap,file=mapFile)
 		}

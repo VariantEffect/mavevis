@@ -54,15 +54,23 @@ if (!file.exists(mapfile)) {
 #load the pxMap object from the data file
 tryCatch({
 	load(mapfile)
-	mainMap <- na.omit(pxMap$main)
-	summaryMap <- na.omit(pxMap$summary)
+	mainMap <- pxMap$main
+	summaryMap <- pxMap$summary
+
+	errName <- "uncertainty"
+	if ("errName" %in% names(pxMap)) {
+		errName <- pxMap$errName
+	}
 
 	#translate main map into HTML areas
 	mainAreas <- paste(do.call(c,lapply(1:nrow(mainMap),function(i) with(mainMap[i,],{
 		paste0("<area shape=\"rect\" coords=\"",
-			paste(x0,y1,x1,y0,sep=","),"\" ",
-			"title=\"",sprintf("%s%d%s fitness=%.2f error=%.2f",wt,pos,aa,score,error),"\"",
-			"/>"
+			paste(x0,y1,x1,y0,sep=","),
+			"\" ","title=\"",
+			sprintf(
+				"Variant: %s%d%s; score = %.2f; %s = %.2f",
+				wt,pos,aa,score,errName,error
+			),"\"/>"
 		)
 	}))),collapse="\n")
 
@@ -70,7 +78,7 @@ tryCatch({
 	summaryAreas <- paste(do.call(c,lapply(1:nrow(summaryMap),function(i) with(summaryMap[i,],{
 		paste0("<area shape=\"rect\" coords=\"",
 			paste(x0,y1,x1,y0,sep=","),"\" ",
-			"title=\"",sprintf("%s%d median=%.2f",wt,pos,Median),"\"",
+			"title=\"",sprintf("Residue: %s%d; median=%.2f",wt,pos,Median),"\"",
 			"/>"
 		)
 	}))),collapse="\n")
