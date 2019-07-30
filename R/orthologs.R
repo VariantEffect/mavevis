@@ -244,10 +244,10 @@ calc.conservation <- function(acc,overrideCache=FALSE) {
 		if (!(acc %in% xrefs)) {
 			stop("UniRef Cluster does not contain query protein!")
 		}
-		#make sure query protein is at the top of the list, otherwise re-order
-		if (xrefs[[1]] != acc) {
-			xrefs <- c(acc,setdiff(xrefs,acc))
-		}
+		# #make sure query protein is at the top of the list, otherwise re-order
+		# if (xrefs[[1]] != acc) {
+		# 	xrefs <- c(acc,setdiff(xrefs,acc))
+		# }
 
 		cat("Retrieving sequences...")
 		#use batch-service to download multi-fasta file for the set of sequences
@@ -263,7 +263,24 @@ calc.conservation <- function(acc,overrideCache=FALSE) {
 		multifasta <- content(htr,"text",encoding="UTF-8")
 		cat("success\n")
 
-		#export to 
+		#!! make sure query protein is first in the list !!
+		#!! this is not guaranteed to be the case, as they are returned in random order !!
+		fastacon <- textConnection(multifasta,open="r")
+		fastalines <- scan(fastacon,what="character",sep="\n")
+		close(fastacon)
+		header.idx <- grep("^>",fastalines)
+		headerlines <- fastalines[header.idx]
+		query.idx <- grep(acc,headerlines)
+		if (length(query.idx) == 0) {
+			stop("Uniref cluster FASTA file does not contain query sequence!")
+		}
+		if (query.idx != 1) {
+			query.start <- header.idx[[query.idx]]
+			query.end <- c(header.idx,length(fastalines)+1)[[query.idx+1]]-1
+			multifasta <- c(fastalines[query.start:query.end],fastalines[-(query.start:query.end)])
+		}
+
+		#export to fasta file
 		fasta.file <- getCacheFile(paste0(acc,"_orthologs.fasta"))
 		con <- file(fasta.file,open="w")
 		writeLines(multifasta,con)
