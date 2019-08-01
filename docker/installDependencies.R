@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with MaveVis.  If not, see <https://www.gnu.org/licenses/>.
 
-install.packages("devtools",repos="http://cran.utstat.utoronto.ca/")
+install.packages("devtools",repos="https://cloud.r-project.org/")
+# install.packages("devtools",repos="http://cran.utstat.utoronto.ca/")
 
 library(devtools)
 
