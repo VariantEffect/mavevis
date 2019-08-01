@@ -295,6 +295,7 @@ $(document).ready(function(){
 		.done(function(url) {
 			//set the download target
 			$("#jobIDHolder").val(currJobID);
+			$("#mainProgressbar .progress-label").text("Loading map...");
 			fetchMapAndCombine(url);
 		})
 		.fail(function(xhr, status, error) {
@@ -318,15 +319,19 @@ $(document).ready(function(){
 		$.post("getMap.R",{
 			jobID: currJobID
 		}).done(function(map) {
+			$("#mainProgressbar .progress-label").text("Done!");
 			$("#imagepanel").html(
-				'<img src="'+url+'" alt="result" useMap="#pxmap"/>' +
-				map
+				'<img src="'+url+'" alt="result" useMap="#pxmap"/>'
 			)
 			$("#imagepanel").show();
 			$("#downloadpanel").show();
 			$("#mainProgressbar").hide();
 			$("#legendbox").show();
 			$("#outputpanel").show();
+			//allow image to display before appending map content
+			setTimeout(function(){
+				$("#imagepanel").append(map);
+			},100);
 		}).fail(function(xhr, status, error) {
 			showError(error);
 			$("#imagepanel").html(
