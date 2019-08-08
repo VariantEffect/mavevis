@@ -1,6 +1,6 @@
 Package: mavevis
 Title: Visualization for MaveDB
-Version: 0.1.2.9000
+Version: 0.1.2
 Authors@R: person("Jochen", "Weile", email = "jochenweile@gmail.com", role = c("aut", "cre"))
 Description: Query data from MaveDB and visualize as genophenograms with added tracks for structure information.
 Depends: R (>= 3.2.3)
