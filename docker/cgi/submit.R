@@ -21,11 +21,11 @@ suppressMessages({
 	library(cgir)
 	library(RJSONIO)
 })
-log.dir <- Sys.getenv("MAVEVIS_LOGS",unset="/var/www/mavevis/logs/")
+log.dir <- Sys.getenv("MAVEVIS_LOGS",unset="/var/www/html/mavevis/logs/")
 setMessageSink(paste0(log.dir,"exec.log"))
 
 #Caching directory
-cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/mavevis/cache/")
+cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/html/mavevis/cache/")
 
 launcher.loc <- "/var/www/html/mavevis/mavevis_launcher.R"
 

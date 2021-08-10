@@ -28,7 +28,7 @@ library(mavevis)
 baseURL <- "https://www.mavedb.org/api/"
 
 #Caching directory
-cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/mavevis/cache/")
+cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/html/mavevis/cache/")
 if (!file.exists(cache.dir)) {
 	stop("Cache directory does not exist!")
 }
@@ -100,21 +100,28 @@ tryCatch({
 	#Query list of scoresets
 	scoresets <- rmave$getAllScoreSets()
 
-	#Iterate overscoresets and build index
-	index <- to.df(do.call(rbind,lapply(scoresets,function(scoreset) {
+	#Load existing search index
+	indexFile <- paste0(cache.dir,"searchIndex.csv")
+	index <- read.csv(indexFile)
+
+	###
+	# FIRST STEP: Look for new MaveDB entries and add them to the search index.
+	# Quick and dirty
+	for (scoreset in scoresets) {
 
 		#If it's an outdated scoreset, skip it!
 		if (!is.null(scoreset$getNextVersion())) {
-			return(NULL)
+			# return(NULL)
+			next
 		}
 
 		urn <- scoreset$getURN()
 		name <- scoreset$getTitle()
 
 		#No need to process if it's already known
-		# if (!is.null(index) && urn %in% index$urn) {
-		# 	return(NULL)
-		# }
+		if (urn %in% index$urn) {
+			next
+		}
 
 		target <- scoreset$getTarget()
 		tname <- target$getName()
@@ -131,15 +138,45 @@ tryCatch({
 			label <- paste0(tname," - ",name)
 		}
 
-		if (targetType != "Protein coding") {
-			return(list(
-				value=value,label=label,urn=urn,target=tname,
-				uniprot=NA,syn="manual",stop="manual",
-				offset=0, wt=wtseq, 
-				rangeStart=NA, rangeEnd=NA,
-				type=targetType
-			))
+		#Get offset or calculate if necessary
+		if (!is.null(uniprot)) {
+			uniprotId <- uniprot$getID()
+			offset <- uniprot$getOffset()
+			if (is.null(offset)) {
+				offset <- calcOffset(uniprot$getID(),wtseq)
+			}
+		} else {
+			offset <- NA
+			uniprotId <- NA
 		}
+
+		index <- rbind(index,data.frame(
+			value=value,label=label,urn=urn,target=tname,
+			uniprot=uniprotId,syn="manual",stop="manual",
+			offset=offset, wt=wtseq, 
+			rangeStart=NA, rangeEnd=NA,
+			type=targetType
+		))
+
+	}
+
+	#Export quick-and-dirty index for immediate use
+	write.table(index,indexFile,sep=",",row.names=FALSE)
+
+	logger("Index successfully pre-populated.")
+
+	###SECOND STEP: Cache scores, parse HGVS descriptors and add refined information
+	# to index
+	for (scoreset in scoresets) {
+
+		#If it's an outdated scoreset, skip it!
+		if (!is.null(scoreset$getNextVersion())) {
+			# return(NULL)
+			next
+		}
+
+		urn <- scoreset$getURN()
+		idxrow <- which(index$urn == urn)
 
 		#Check if scores are already cached
 		scoreCacheFile <- paste0(cache.dir,urn,".csv")
@@ -162,25 +199,10 @@ tryCatch({
 				write.table(varInfo,mutCacheFile,sep=",",row.names=TRUE)
 			} else {
 				logger(paste("WARNING: Scoreset",urn,"has no protein-level variant descriptors."))
-				return(NULL)
+				next
 			}
 		} else {
 			varInfo <- read.csv(mutCacheFile)
-		}
-
-
-		#Parse score file to check for presence of syn/stop
-		
-		#Get off set or calculate if necessary
-		if (!is.null(uniprot)) {
-			uniprotId <- uniprot$getID()
-			offset <- uniprot$getOffset()
-			if (is.null(offset)) {
-				offset <- calcOffset(uniprot$getID(),wtseq)
-			}
-		} else {
-			offset <- NA
-			uniprotId <- NA
 		}
 
 		#store map range so we can use it later to filter applicable PDB files
@@ -199,26 +221,25 @@ tryCatch({
 			hasSyn <- any(varInfo$type == "synonymous")
 		}
 
+		if (hasStop) {
+			index[idxrow,"stop"] <- "auto"
+		}
+		if (hasSyn) {
+			index[idxrow,"syn"] <- "auto"
+		}
 
-		#add scoreset information to index
-		list(
-			value=value,label=label,urn=urn,target=tname,
-			uniprot=uniprotId,
-			syn=if (hasSyn) "auto" else "manual",
-			stop=if (hasStop) "auto" else "manual",
-			offset=offset, wt=wtseq, 
-			rangeStart=mapRange[[1]], rangeEnd=mapRange[[2]],
-			type=targetType
-		)
+		# update table after every iteration to make new information
+		# immediately available
+		write.table(index,indexFile,sep=",",row.names=FALSE)
 
-	})))
+	}
 
-	indexFile <- paste0(cache.dir,"searchIndex.csv")
-	write.table(index,indexFile,sep=",",row.names=FALSE)
+	# indexFile <- paste0(cache.dir,"searchIndex.csv")
+	# write.table(index,indexFile,sep=",",row.names=FALSE)
 
 	logger("Index successfully updated.")
 
-	logger("Starting caching cycle.")
+	logger("Starting pre-calculation cycle.")
 
 	#pre-cache alignments, PDB files, and structure tracks.
 	# invisible(lapply(index$uniprot,function(acc) {

@@ -20,7 +20,7 @@
 suppressMessages({
 	library(cgir)
 })
-log.dir <- Sys.getenv("MAVEVIS_LOGS",unset="/var/www/mavevis/logs/")
+log.dir <- Sys.getenv("MAVEVIS_LOGS",unset="/var/www/html/mavevis/logs/")
 setMessageSink(paste0(log.dir,"exec.log"))
 
 mVersion <- as.character(packageVersion("mavevis"))

@@ -28,11 +28,14 @@ clean:
 	docker stop mavevis&&docker container rm mavevis
 
 run:
-	nohup docker run -t -p 80:80 --name mavevis $(USER)/mavevis:latest &
+	nohup docker run -t -p 80:80 --name mavevis \
+		--mount source=mavecache,target=/var/www/html/mavevis/cache/ \
+		$(USER)/mavevis:latest &
 
 runwmount:
 	nohup docker run -t -p 80:80 --name mavevis \
 		--mount type=bind,source=$(PROJECTDIR),target=/projects,readonly \
+		--mount source=mavecache,target=/var/www/html/mavevis/cache/ \
 		$(USER)/mavevis:latest &
 
 push:

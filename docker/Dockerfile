@@ -68,29 +68,29 @@ RUN Rscript installDependencies.R ${UPDATE_RPKG}
 
 
 # Create mavevis' directory structure and grant access to apache
-RUN mkdir -p /var/www/mavevis/httpdocs &&\
-    mkdir -p /var/www/mavevis/logs &&\
-    chmod 777 /var/www/mavevis/logs &&\
-    mkdir -p /var/www/mavevis/cache/ &&\
-    chmod 777 /var/www/mavevis/cache/
+RUN mkdir -p /var/www/html/mavevis/httpdocs &&\
+    mkdir -p /var/www/html/mavevis/logs &&\
+    chmod 777 /var/www/html/mavevis/logs &&\
+    mkdir -p /var/www/html/mavevis/cache/ &&\
+    chmod 777 /var/www/html/mavevis/cache/
 
 #set environment variables so the app knows were to write/read data
-ENV MAVEVIS_CACHE /var/www/mavevis/cache/
-ENV MAVEVIS_LOGS /var/www/mavevis/logs/
+ENV MAVEVIS_CACHE /var/www/html/mavevis/cache/
+ENV MAVEVIS_LOGS /var/www/html/mavevis/logs/
 #Note: the apache user cannot see these variables, so they must also be set in the
 # apache config file (mavevis.conf)!!!
-RUN printf "export MAVEVIS_CACHE=/var/www/mavevis/cache/\n">>/etc/apache2/envvars &&\
-    printf "export MAVEVIS_LOGS=/var/www/mavevis/logs/\n">>/etc/apache2/envvars
+RUN printf "export MAVEVIS_CACHE=/var/www/html/mavevis/cache/\n">>/etc/apache2/envvars &&\
+    printf "export MAVEVIS_LOGS=/var/www/html/mavevis/logs/\n">>/etc/apache2/envvars
 
 #Move CGI scripts to staging location and grant access to apache
 ADD cgi/ /var/www/html/mavevis/httpdocs/
 COPY mavevis_launcher.R /var/www/html/mavevis/
-COPY searchIndex.csv /var/www/mavevis/cache/
+COPY searchIndex.csv /var/www/html/mavevis/cache/
 RUN chmod a+rx /var/www/html/mavevis/httpdocs/*.R &&\
     chmod a+rx /var/www/html/mavevis/*.R &&\
     mkdir /var/www/html/mavevis/httpdocs/results/ &&\
     chmod 777 /var/www/html/mavevis/httpdocs/results/ &&\
-    chmod 666 /var/www/mavevis/cache/searchIndex.csv
+    chmod 666 /var/www/html/mavevis/cache/searchIndex.csv
 
 #Introduce apache configuration files for app and enable it
 COPY security.conf /etc/apache2/conf-available/
@@ -101,9 +101,9 @@ RUN a2dissite 000-default.conf && a2ensite mavevis
 # RUN \
 #   ln -sf /proc/self/fd/1 /var/log/apache2/access.log && \
 #   ln -sf /proc/self/fd/1 /var/log/apache2/error.log && \
-#   # ln -sf /proc/self/fd/1 /var/www/mavevis/logs/exec.log && \
-#   ln -sf /proc/self/fd/1 /var/www/mavevis/logs/error.log && \
-#   ln -sf /proc/self/fd/1 /var/www/mavevis/logs/access.log
+#   # ln -sf /proc/self/fd/1 /var/www/html/mavevis/logs/exec.log && \
+#   ln -sf /proc/self/fd/1 /var/www/html/mavevis/logs/error.log && \
+#   ln -sf /proc/self/fd/1 /var/www/html/mavevis/logs/access.log
 
 #setup startup script and daemon
 COPY startup.sh daemon.R sync.R /setup/

@@ -21,7 +21,7 @@ library(RJSONIO)
 options(stringsAsFactors=FALSE)
 
 #Caching directory
-cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/mavevis/cache/")
+cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/html/mavevis/cache/")
 if (!file.exists(cache.dir)) {
 	stop("Cache directory does not exist!")
 }
@@ -97,7 +97,7 @@ lastSyncTime <- as.Date("2018-01-01")
 check.sync <- function() {
 	#check if a previous sync job is still running
 	#(i.e. count the number of matching jobs in the process list)
-	njobs <- as.numeric(system("ps -eo command|grep sync.R|grep -cv grep",intern=TRUE))
+	njobs <- as.numeric(system("ps -eo command --cols 500|grep sync.R|grep -cv grep",intern=TRUE))
 	#calculate time passed since last synchronization
 	minSinceSync <- difftime(Sys.time(), lastSyncTime, units = "mins")
 	#if more than five minutes has passed and no previous job is still runnning

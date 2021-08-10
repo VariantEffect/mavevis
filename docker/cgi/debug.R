@@ -21,11 +21,11 @@ suppressMessages({
 	library(cgir)
 	library(RJSONIO)
 })
-log.dir <- Sys.getenv("MAVEVIS_LOGS",unset="/var/www/mavevis/logs/")
+log.dir <- Sys.getenv("MAVEVIS_LOGS",unset="/var/www/html/mavevis/logs/")
 setMessageSink(paste0(log.dir,"exec.log"))
 
 #Caching directory
-cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/mavevis/cache/")
+cache.dir <- Sys.getenv("MAVEVIS_CACHE",unset="/var/www/html/mavevis/cache/")
 
 #read data from HTTP GET
 input <- readGET()
@@ -59,8 +59,8 @@ files <- c(
 	paste0(cache.dir,"daemon.log"),
 	paste0(cache.dir,"statusDB.csv"),
 	paste0(cache.dir,"statusHistory.csv"),
-	"/var/www/mavevis/logs/access.log",
-	"/var/www/mavevis/logs/error.log",
+	"/var/www/html/mavevis/logs/access.log",
+	"/var/www/html/mavevis/logs/error.log",
 	"/var/log/apache2/access.log",
 	"/var/log/apache2/error.log"
 )
