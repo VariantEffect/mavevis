@@ -148,32 +148,40 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 		stop("PNG resolutions below 50 DPI and above 400 DPI are not allowed.")
 	}
 
-	#Check if WT seq is DNA or protein
-	if (!is.null(wt.seq)) {
-		if (grepl("^[ACGT]+$",wt.seq)) {
-			#set flag to translate to protein later
-			# dnaTranslate <- TRUE
-			cat("Translating WT sequence to Protein...\n")
-			data("trtable")
-			cstarts <- seq(1,nchar(wt.seq),3)
-			aa.seq <- paste(sapply(cstarts,function(cs) trtable[[substr(wt.seq,cs,cs+2)]]),collapse="")
-		} else if (grepl("^[ACDEFGHIKLMNPQRSTVWY]+$",wt.seq)) {#it's already protein
-			aa.seq <- wt.seq
-			# dnaTranslate <- FALSE
-		} else {
-			stop("The supplied WT sequence is neither valid DNA nor Protein.")
-		}
-	} else {
+	#If no WT sequence is provided, try to obtain one
+	if (is.null(wt.seq)) {
 		# dnaTranslate <- FALSE
-		if (!is.null(uniprotId)) {
-			cat("No WT sequence provided. Obtaining Uniprot sequence.")
-			aa.seq <- getUniprotSeq(uniprotId)
-		} else {
-			stop("No WT sequence or uniprot ID provided. Unable to proceed.")
+		cat("No WT sequence provided. Obtaining from MaveDB.\n")
+		mave <- new.rapimave()
+		sset <- mave$getScoreSet(ssid)
+		wt.seq <- sset$getTarget()$getSequence()
+
+		if (is.null(wt.seq) || length(wt.seq)==0) {
+			if (!is.null(uniprotId)) {
+				cat("No WT sequence found on MaveDB. Obtaining Uniprot sequence.\n")
+				aa.seq <- getUniprotSeq(uniprotId)
+			} else {
+				stop("No WT sequence can be found. Unable to proceed.")
+			}
 		}
 	}
-	wt.aa <- toChars(aa.seq)
 
+	#Check if WT seq is DNA or protein
+	if (grepl("^[ACGT]+$",wt.seq)) {
+		#set flag to translate to protein later
+		# dnaTranslate <- TRUE
+		cat("Translating WT sequence to Protein...\n")
+		data("trtable")
+		cstarts <- seq(1,nchar(wt.seq),3)
+		aa.seq <- paste(sapply(cstarts,function(cs) trtable[[substr(wt.seq,cs,cs+2)]]),collapse="")
+	} else if (grepl("^[ACDEFGHIKLMNPQRSTVWY]+$",wt.seq)) {#it's already protein
+		aa.seq <- wt.seq
+		# dnaTranslate <- FALSE
+	} else {
+		stop("The supplied WT sequence is neither valid DNA nor Protein.")
+	}
+	
+	wt.aa <- toChars(aa.seq)
 
 	###############
 	# Load data
@@ -182,9 +190,9 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 	cacheFile <- getCacheFile(paste0(ssid,".csv"))
 	if (!file.exists(cacheFile) || overrideCache) {
 		cat("Querying scoreset from MaveDB...\n")
+		#retrieve score set
 		#New instance of R-API for MaveDB
 		mave <- new.rapimave()
-		#retrieve score set
 		sset <- mave$getScoreSet(ssid)
 		data <- mave$getScores(ssid)
 		cat("Caching scoreset locally...\n")
@@ -193,6 +201,11 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 		cat("Retrieving scoreset from local cache...\n")
 		data <- read.csv(cacheFile)
 	}
+
+	####################
+	# Load WT sequence #
+	####################
+	
 
 	mutCacheFile <- getCacheFile(paste0(ssid,"_muts.csv"))
 	if (!file.exists(mutCacheFile) || overrideCache) {
