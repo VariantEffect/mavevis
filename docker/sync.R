@@ -206,6 +206,7 @@ tryCatch({
 		}
 
 		#store map range so we can use it later to filter applicable PDB files
+		offset <- index[idxrow,"offset"]
 		if (!is.na(offset)) {
 			mapRange <- range(varInfo$start,na.rm=TRUE)+offset
 		} else {
