@@ -190,6 +190,7 @@ tryCatch({
 		#Check if variant descriptors have already been cached
 		mutCacheFile <- paste0(cache.dir,urn,"_muts.csv")
 		if (!file.exists(mutCacheFile)) {
+			logger(paste(" -> Interpreting variants of ",urn))
 			#if not, do so
 			if (!exists("scoreTable")) {
 				scoreTable <- read.csv(scoreCacheFile)
@@ -201,39 +202,44 @@ tryCatch({
 				logger(paste("WARNING: Scoreset",urn,"has no protein-level variant descriptors."))
 				next
 			}
-		} else {
-			varInfo <- read.csv(mutCacheFile)
-		}
 
-		#store map range so we can use it later to filter applicable PDB files
-		offset <- index[idxrow,"offset"]
-		if (!is.na(offset)) {
-			mapRange <- range(varInfo$start,na.rm=TRUE)+offset
-		} else {
-			mapRange <- c(NA,NA)
-		}
-		
-		#determine whether stop and synonymous variants are present
-		if ("multiPart" %in% colnames(varInfo)) {
-			hasStop <- any(varInfo$variant %in% c("Ter","*") & is.na(varInfo$multiPart))
-			hasSyn <- any(varInfo$type == "synonymous" & is.na(varInfo$multiPart))
-		} else {
-			hasStop <- any(varInfo$variant %in% c("Ter","*"))
-			hasSyn <- any(varInfo$type == "synonymous")
-		}
+			#store map range so we can use it later to filter applicable PDB files
+			offset <- index[idxrow,"offset"]
+			if (!is.na(offset)) {
+				mapRange <- range(varInfo$start,na.rm=TRUE)+offset
+			} else {
+				mapRange <- c(NA,NA)
+			}
+			
+			#determine whether stop and synonymous variants are present
+			if ("multiPart" %in% colnames(varInfo)) {
+				hasStop <- any(varInfo$variant %in% c("Ter","*") & is.na(varInfo$multiPart))
+				hasSyn <- any(varInfo$type == "synonymous" & is.na(varInfo$multiPart))
+			} else {
+				hasStop <- any(varInfo$variant %in% c("Ter","*"))
+				hasSyn <- any(varInfo$type == "synonymous")
+			}
 
-		if (hasStop) {
-			index[idxrow,"stop"] <- "auto"
-		}
-		if (hasSyn) {
-			index[idxrow,"syn"] <- "auto"
-		}
+			if (hasStop) {
+				index[idxrow,"stop"] <- "auto"
+			}
+			if (hasSyn) {
+				index[idxrow,"syn"] <- "auto"
+			}
 
-		# update table after every iteration to make new information
-		# immediately available
-		write.table(index,indexFile,sep=",",row.names=FALSE)
+			# update to make new information
+			# immediately available
+			write.table(index,indexFile,sep=",",row.names=FALSE)
 
+		} 
+		# else {
+		# 	varInfo <- read.csv(mutCacheFile)
+		# }
 	}
+
+	#free up memory
+	rm(varInfo)
+	rm(scoreTable)
 
 	# indexFile <- paste0(cache.dir,"searchIndex.csv")
 	# write.table(index,indexFile,sep=",",row.names=FALSE)
