@@ -74,6 +74,13 @@ new.trackdrawer <- function(l,nox=FALSE) {
 		.types[[length(.types)+1]] <<- "heat"
 	}
 
+	add.domtrack <- function(domains,colkey) {
+		domains$color <- colkey[domains$type]
+		.tracks[[length(.tracks)+1]] <<- domains
+		.labels[[length(.labels)+1]] <<- "Domains"
+		.types[[length(.types)+1]] <<- "domains"
+	}
+
 	add.constrack <- function(values) {
 		.tracks[[length(.tracks)+1]] <<- values
 		.labels[[length(.labels)+1]] <<- "Cons."
@@ -203,6 +210,13 @@ new.trackdrawer <- function(l,nox=FALSE) {
 				pos <- 1:l
 				bh <- .tracks[[i]]/12
 				rect(pos-.5,h-i,pos+.5,h-i+bh,border=NA,col=pal[.tracks[[i]]+1])
+			} else if (.types[[i]] == "domains") {
+				with(.tracks[[i]],{
+					rect(start-.5,h-i,end+.5,h-i+1,border="black",col=color)
+					if (!is.na(name)) {
+						text((start+end/2),h-i+.5,name)
+					}
+				})
 			}
 		}
 		par(op)
@@ -225,6 +239,7 @@ new.trackdrawer <- function(l,nox=FALSE) {
 		add.track=add.track,
 		add.constrack=add.constrack,
 		add.ss.track=add.ss.track,
+		add.domtrack=add.domtrack,
 		draw=draw,
 		num.tracks=num.tracks,
 		debug=debug

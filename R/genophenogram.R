@@ -16,6 +16,26 @@
 # along with MaveVis.  If not, see <https://www.gnu.org/licenses/>.
 
 
+#' Helper function to draw staggered oversized labels on the y-axis
+#' @param at positions of tick marks
+#' @param labels tick mark labels
+#' @param cex character expansion factor (relative font size)
+#' @return NULL
+axisHack <- function(at,labels,cex=1) {
+  zero <- par("usr")[[1]]
+  marginSize <- grconvertX(par("mar")[[2]],"lines","device")
+  unitSize <- grconvertX(zero+1,"user","device")-grconvertX(zero,"user","device")
+  m2u <- function(x) zero-x*marginSize/unitSize
+
+  op <- par(xpd=TRUE)
+  segments(m2u(.1),min(at),m2u(.1),max(at))
+  segments(m2u(.2),at,m2u(.1),at)
+  text(rep(c(m2u(.4),m2u(.6)),length(labels)/2), at, labels,cex=cex)
+  par(op)
+
+  return(invisible(NULL))
+}
+
 #' Draw genophenogram plot 
 #' 
 #' Draws a genophenogram plot from given data
@@ -101,7 +121,8 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	#add x and y axes
 	# axis(1,c(1,seq(5,length(wt.aa),5)))
 	axis(1,seq((startPos %/% 5)*5,(endPos%/%5)*5,5),cex.axis=1.5)
-	axis(2,at=1:21,labels=rev(aas))
+	# axis(2,at=1:21,labels=rev(aas))
+	axisHack(at=1:21,labels=rev(aas),cex=1.5)
 
 	# #add amino acid group labels
 	# text(-1,c(17.5,9),c("hydrophobic","polar"),srt=90)

@@ -289,8 +289,16 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 		cat("Obtaining conservation information...\n")
 		cons <- calc.conservation(uniprotId)
 
+		domains <- data.frame()
+		try({
+			domains <- fetch.domains.pfam(acc=uniprotId)
+		})
+
 		td <- new.trackdrawer(l=length(wt.aa),nox=TRUE)
 		td$add.constrack(cons)
+		if (nrow(domains) > 0) {
+			td$add.domtrack(domains,c(`Pfam-A`="orange"))
+		}
 
 		if (!is.null(pdbs)) {
 			cat("Obtaining structural features...\n")

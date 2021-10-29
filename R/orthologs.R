@@ -127,6 +127,121 @@ find.pdbs <- function(acc, filterRange=NA) {
 	return(pdb.table)
 }
 
+#' Find domains for a Uniprot accession
+#' 
+#' Finds protein domains belonging to the given Uniprot accession.
+#' Checks for a local cache file of previous results. If such a cache exists, the pre-calculated
+#' results will be returned, otherwise queries to Uniprot and PDB will be made.
+#' 
+#' @param acc the Uniprot accession
+#' @return a \code{data.frame} with the following columns:
+#' \itemize{
+#'   \item type: the type of domain or feature (SIGNAL, DOMAIN, or REPEAT)
+#'   \item method: the experimental method for this structure, e.g NMR, X-ray or Model
+#'   \item name: the name of the domain or feature
+#'   \item start: the start amino acid position
+#'   \item end: the end amino acid position
+#' }
+#' @export
+fetch.domains.uniprot <- function(acc) {
+
+
+	cacheFile <- getCacheFile(paste0(acc,"_UPdomains.csv"))
+
+	if (!file.exists(cacheFile)) {
+
+	  library("httr")
+	  set_config(config(ssl_verifypeer = 0L))
+
+	  uniprot.base <- "https://www.uniprot.org/uniprot/"
+
+	  htr <- GET(paste0(uniprot.base,acc,".txt"))
+	  if (http_status(htr)$category != "Success") {
+	    stop("Unable to access Uniprot!\n",http_status(htr)$message)
+	  }
+
+	  lines <- strsplit(content(htr,"text",encoding="UTF-8"),"\n")[[1]]
+
+	  domain.lines <- grep("^FT\\s+(SIGNAL|DOMAIN|REPEAT)",lines)
+	  if (length(domain.lines) == 0) {
+	    out <- data.frame()
+	  } else {
+		  domain.data <- yogitools::extract.groups(lines[domain.lines],"(SIGNAL|DOMAIN|REPEAT)\\s+(\\d+)..(\\d+)")
+		  domain.names <- yogitools::extract.groups(lines[domain.lines+1],"/note=\\\"(.*)\\\"")
+		  out <- data.frame(
+		    type=domain.data[,1],
+		    name=domain.names,
+		    start=as.integer(domain.data[,2]),
+		    end=as.integer(domain.data[,3])
+		  )
+		}
+	  write.table(out,cacheFile,sep=",",row.names=FALSE)
+
+  } else {
+
+		cat("Retrieving data from cache...\n")
+		out <- read.csv(cacheFile)
+
+  }
+  return(out)
+}
+
+#' Find Pfam domains for a Uniprot accession
+#' 
+#' Finds Pfam domains belonging to the given Uniprot accession.
+#' Checks for a local cache file of previous results. If such a cache exists, the pre-calculated
+#' results will be returned, otherwise queries to Uniprot and PDB will be made.
+#' 
+#' @param acc the Uniprot accession
+#' @return a \code{data.frame} with the following columns:
+#' \itemize{
+#'   \item type: the type of domain or feature (SIGNAL, DOMAIN, or REPEAT)
+#'   \item method: the experimental method for this structure, e.g NMR, X-ray or Model
+#'   \item name: the name of the domain or feature
+#'   \item start: the start amino acid position
+#'   \item end: the end amino acid position
+#' }
+#' @export
+fetch.domains.pfam <- function(acc) {
+
+	cacheFile <- getCacheFile(paste0(acc,"_PFdomains.csv"))
+
+	if (!file.exists(cacheFile)) {
+
+	  library("httr")
+	  library("xml2")
+	  library("yogitools")
+	  set_config(config(ssl_verifypeer = 0L))
+
+	  pfam.base <- "https://pfam.xfam.org/protein/"
+
+	  htr <- GET(paste0(pfam.base,acc,"?output=xml"))
+	  if (http_status(htr)$category != "Success") {
+	    stop("Unable to access Uniprot!\n",http_status(htr)$message)
+	  }
+	  txt <- content(htr,"text",encoding="UTF-8")
+	  doc <- as_list(read_xml(txt))
+	  domains <- yogitools::as.df(lapply(doc$pfam$entry$matches,function(domain) {
+	    list(
+	      type=attr(domain,"type"),
+	      name=attr(domain,"id"),
+	      start=as.integer(attr(domain$location,"start")),
+	      end=as.integer(attr(domain$location,"end"))
+	    )
+	  }))
+	  domains <- domains[order(domains$start),]
+	  write.table(domains,cacheFile,sep=",",row.names=FALSE)
+
+  } else {
+
+		cat("Retrieving data from cache...\n")
+		domains <- read.csv(cacheFile)
+
+  }
+  return(domains)
+
+}
+
 #' Retrieve Uniprot Sequence
 #' 
 #' Retrieves the amino acid sequence for the protein indicated by a Uniprot accession.
