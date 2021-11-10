@@ -4,9 +4,19 @@
 \alias{genophenogram.nc}
 \title{Draw genophenogram plot for nucleotide sequences}
 \usage{
-genophenogram.nc(wt.nc, pos, mut.nc, score, syn.med, stop.med,
-  error = NULL, a = 0, grayBack = FALSE, img.width = 12,
-  tracks = NULL)
+genophenogram.nc(
+  wt.nc,
+  pos,
+  mut.nc,
+  score,
+  syn.med,
+  stop.med,
+  error = NULL,
+  a = 0,
+  grayBack = FALSE,
+  img.width = 12,
+  tracks = NULL
+)
 }
 \arguments{
 \item{wt.nc}{wildtype amino acid sequence as a vector of single characters.}

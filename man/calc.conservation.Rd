@@ -4,7 +4,7 @@
 \alias{calc.conservation}
 \title{Calculate position-wise conservation from a Uniprot accession}
 \usage{
-calc.conservation(acc)
+calc.conservation(acc, overrideCache = FALSE)
 }
 \arguments{
 \item{acc}{the Uniprot accession}

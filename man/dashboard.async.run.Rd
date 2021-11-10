@@ -4,9 +4,19 @@
 \alias{dashboard.async.run}
 \title{Launch asynchronous dashboard job}
 \usage{
-dashboard.async.run(ssid, uniprotId, pdbs, mainChains, wt.seq = NULL,
-  seq.offset = 0, syn.med = NULL, stop.med = NULL,
-  overrideCache = FALSE, outFormats = c("pdf", "png"), pngRes = 100)
+dashboard.async.run(
+  ssid,
+  uniprotId,
+  pdbs,
+  mainChains,
+  wt.seq = NULL,
+  seq.offset = 0,
+  syn.med = NULL,
+  stop.med = NULL,
+  overrideCache = FALSE,
+  outFormats = c("pdf", "png"),
+  pngRes = 100
+)
 }
 \arguments{
 \item{ssid}{The MaveDB ScoreSet ID of the dataset to be visualized}

@@ -116,13 +116,14 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	op <- par(cex=.8,las=1,mar=c(5,5,0,0)+.1)
 	plot(NA,type="n",
 		xlim=c(startPos-4.5,endPos+1),ylim=c(0,length(aas)+1),axes=FALSE,
-		xaxs="i",xlab="AA position",ylab="AA residue",main=""
+		xaxs="i",xlab="AA position",ylab="",main=""
 	)
 	#add x and y axes
 	# axis(1,c(1,seq(5,length(wt.aa),5)))
 	axis(1,seq((startPos %/% 5)*5,(endPos%/%5)*5,5),cex.axis=1.5)
 	# axis(2,at=1:21,labels=rev(aas))
 	axisHack(at=1:21,labels=rev(aas),cex=1.5)
+	mtext("AA residue",side=2,line=4,las=3)
 
 	# #add amino acid group labels
 	# text(-1,c(17.5,9),c("hydrophobic","polar"),srt=90)

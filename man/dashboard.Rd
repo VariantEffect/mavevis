@@ -4,10 +4,21 @@
 \alias{dashboard}
 \title{Draw dashboard for scoreset}
 \usage{
-dashboard(ssid, uniprotId, pdbs, mainChains, wt.seq = NULL,
-  seq.offset = 0, syn.med = NULL, stop.med = NULL,
-  overrideCache = FALSE, outFormats = c("pdf", "png"), pngRes = 100,
-  outID = ssid)
+dashboard(
+  ssid,
+  uniprotId = NULL,
+  pdbs = NULL,
+  mainChains = NULL,
+  wt.seq = NULL,
+  seq.offset = 0,
+  syn.med = NULL,
+  stop.med = NULL,
+  overrideCache = FALSE,
+  outFormats = c("pdf", "png"),
+  pngRes = 100,
+  outID = ssid,
+  pixelMap = FALSE
+)
 }
 \arguments{
 \item{ssid}{The MaveDB ScoreSet ID of the dataset to be visualized}
@@ -40,6 +51,12 @@ Using two or all three at once is allowed and will result in multiple output fil
 \item{pngRes}{Resolution of PNG output in DPI. Defaults to 100.}
 
 \item{outID}{a name for the output file to which the plot will be written. Defaults to ssid.}
+
+\item{pixelMap}{boolean flag, whether to generate a pixel map for a png image. The map will
+be written to an Rdata file named according to the outID parameter. Defaults to \code{FALSE}.}
+}
+\value{
+\code{NULL}.
 }
 \description{
 Retrieves a scoreset entry from MaveDB and renders a dashboard plot consisting

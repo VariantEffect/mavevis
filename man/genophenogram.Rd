@@ -4,8 +4,20 @@
 \alias{genophenogram}
 \title{Draw genophenogram plot}
 \usage{
-genophenogram(wt.aa, pos, mut.aa, score, syn.med, stop.med, error = NULL,
-  a = 0, grayBack = FALSE, img.width = 12, tracks = NULL)
+genophenogram(
+  wt.aa,
+  pos,
+  mut.aa,
+  score,
+  syn.med,
+  stop.med,
+  error = NULL,
+  a = 0,
+  grayBack = FALSE,
+  img.width = 12,
+  tracks = NULL,
+  pixelMap = FALSE
+)
 }
 \arguments{
 \item{wt.aa}{wildtype amino acid sequence as a vector of single characters.}
@@ -26,6 +38,11 @@ genophenogram(wt.aa, pos, mut.aa, score, syn.med, stop.med, error = NULL,
 allowing it to adjust the size of the legend}
 
 \item{tracks}{an optional trackdrawer object to add structural information to the plot}
+
+\item{pixelMap}{boolean flag, whether or not to return a pixel coordinate map object}
+}
+\value{
+NULL, or a pixel coordinate map, i.e. a list with two data frames
 }
 \description{
 Draws a genophenogram plot from given data
