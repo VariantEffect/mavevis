@@ -183,7 +183,7 @@ new.trackdrawer <- function(l,nox=FALSE) {
 
 	draw <- function() {
 		if (length(.tracks) < 1) stop("no tracks!")
-		h <- length(.tracks)
+			h <- length(.tracks)
 		if (nox) {
 			op <- par(las=1,mar=c(0,5,1,0)+.1)
 		} else {
@@ -213,9 +213,10 @@ new.trackdrawer <- function(l,nox=FALSE) {
 			} else if (.types[[i]] == "domains") {
 				with(.tracks[[i]],{
 					rect(start-.5,h-i,end+.5,h-i+1,border="black",col=color)
-					if (!is.na(name)) {
-						text((start+end/2),h-i+.5,name)
+					if (any(is.na(name))) {
+						name[is.na(name)] <- type[is.na(name)]
 					}
+					text((start+end)/2,h-i+.5,name)
 				})
 			}
 		}
