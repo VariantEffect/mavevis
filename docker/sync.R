@@ -283,7 +283,7 @@ tryCatch({
 			pdb.table <- find.pdbs(acc,mapRange)
 
 			#iterate over associated pdb structures
-			if (nrow(pdb.table) > 0) {
+			if (!is.null(pdb.table) && nrow(pdb.table) > 0) {
 				apply(pdb.table,1,function(pdb.row) {
 					pdbacc <- pdb.row[["pdb"]]
 					mainChains <- strsplit(pdb.row[["mainChains"]],"/")[[1]]
@@ -305,6 +305,8 @@ tryCatch({
 						}
 					})
 				})
+			} else {
+				logger(paste("No structures found for",acc))
 			}
 		}
 
