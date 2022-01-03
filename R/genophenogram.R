@@ -156,8 +156,8 @@ genophenogram <- function(wt.aa, pos, mut.aa, score, syn.med, stop.med,
 	#calculate coordinates and colors for the main heatmap rectangles
 	x <- pos
 	y <- length(aas) - sapply(mut.aa,function(a) if (is.na(a)) NA else which(aas==a)) + 1
-	neutral.bottom <- stop.med+(syn.med-stop.med)*0.8
-	neutral.top <- stop.med+(syn.med-stop.med)*1.2
+	neutral.bottom <- stop.med+(syn.med-stop.med)*0.95
+	neutral.top <- stop.med+(syn.med-stop.med)*1.05
 	syn.top <- syn.med+(syn.med-stop.med)
 	cm <- colmap(
 		valStops=c(stop.med, neutral.bottom, neutral.top, syn.top), 
