@@ -45,7 +45,7 @@ find.pdbs <- function(acc, filterRange=NA) {
 	library("httr")
 	set_config(config(ssl_verifypeer = 0L))
 
-	uniprot.base <- "https://www.uniprot.org/uniprot/"
+	uniprot.base <- "https://rest.uniprot.org/uniprotkb/"
 	pdb.header.base <- "https://files.rcsb.org/header/"
 	pdb.base <- "https://files.rcsb.org/download/"
 
@@ -153,7 +153,7 @@ fetch.domains.uniprot <- function(acc) {
 	  library("httr")
 	  set_config(config(ssl_verifypeer = 0L))
 
-	  uniprot.base <- "https://www.uniprot.org/uniprot/"
+	  uniprot.base <- "https://rest.uniprot.org/uniprotkb/"
 
 	  htr <- GET(paste0(uniprot.base,acc,".txt"))
 	  if (http_status(htr)$category != "Success") {
@@ -217,7 +217,7 @@ fetch.domains.pfam <- function(acc) {
 
 	  htr <- GET(paste0(pfam.base,acc,"?output=xml"))
 	  if (http_status(htr)$category != "Success") {
-	    stop("Unable to access Uniprot!\n",http_status(htr)$message)
+	    stop("Unable to access PFAM!\n",http_status(htr)$message)
 	  }
 	  txt <- content(htr,"text",encoding="UTF-8")
 	  doc <- as_list(read_xml(txt))
@@ -250,7 +250,7 @@ fetch.domains.pfam <- function(acc) {
 #' @export
 getUniprotSeq <- function(uniprot.acc) {
 
-	url <- paste0("https://www.uniprot.org/uniprot/",uniprot.acc,".fasta")
+	url <- paste0("https://rest.uniprot.org/uniprotkb/",uniprot.acc,".fasta")
 
 	readFASTA <- function(file) {
 		lines <- scan(file,what="character",sep="\n")
@@ -314,13 +314,14 @@ pdb.informative <- function(pdb.table) {
 #' @export
 calc.conservation <- function(acc,overrideCache=FALSE) {
 	library("httr")
-	set_config(config(ssl_verifypeer = 0L))
+	library("RJSONIO")
+	httr::set_config(config(ssl_verifypeer = 0L))
 
-	uniprot.base <- "https://www.uniprot.org/uniprot/"
+	# uniprot.base <- "https://www.uniprot.org/uniprot/"
 	# uniref90.base <- "https://www.uniprot.org/uniref/UniRef90_"
-	uniref90.base <- "https://www.uniprot.org/uniref/"
-	uniparc.base <- "https://www.uniprot.org/uniparc/"
-	batch.base <- "https://www.uniprot.org/uploadlists/"
+	uniref90.base <- "https://rest.uniprot.org/uniref/"
+	# uniparc.base <- "https://www.uniprot.org/uniparc/"
+	batch.base <- "https://rest.uniprot.org/idmapping/"
 
 	#Get Orthologs
 	alignment.file <- getCacheFile(paste0(acc,"_alignment.fasta"))
@@ -329,16 +330,49 @@ calc.conservation <- function(acc,overrideCache=FALSE) {
 		cat("Querying UniRef...")
 
 		#Find the appropriate UniRef cluster entry
-		htr <- POST(batch.base, body=list(
-			uploadQuery=acc,
-			format="list",
-			from="ACC+ID",
-			to="NF90"
-		),encode="multipart")
+		htr <- httr::POST(
+			paste0(batch.base,"run"), 
+			body=list(
+				ids=acc, from="UniProtKB_AC-ID", to="UniRef90"
+			),
+			encode="form",
+			#Workaround: Uniprot can't deal with more complex accept headers
+			accept("*/*")
+		)
 		if (http_status(htr)$category != "Success") {
 			stop("Unable to access UniprotKB!\n",http_status(htr)$message)
 		}
-		unirefAccs <- strsplit(content(htr,"text",encoding="UTF-8"),"\n")[[1]]
+		jobId <- RJSONIO::fromJSON(content(htr,"text",encoding="UTF-8"))
+
+		#Poll the job status
+		jobStatus <- c(jobStatus="UNKNOWN")
+		while (!("results" %in% names(jobStatus) || jobStatus %in% c("FINISHED"))) {
+			Sys.sleep(.2)
+			htr <- httr::GET(
+				paste0(batch.base,"status/",jobId),accept("*/*")
+			)
+			if (http_status(htr)$category != "Success") {
+				stop("Unable to access UniprotKB!\n",http_status(htr)$message)
+			}
+			jobStatus <- RJSONIO::fromJSON(content(htr,"text",encoding="UTF-8"))
+		}
+
+		#retrieve result
+		Sys.sleep(.2)
+		if ("results" %in% names(jobStatus)) {
+			results <- jobStatus
+		} else {
+			htr <- httr::GET(
+				paste0(batch.base,"uniref/results/",jobId),accept("*/*")
+			)
+			if (http_status(htr)$category != "Success") {
+				stop("Unable to access UniprotKB!\n",http_status(htr)$message)
+			}
+			results <- fromJSON(content(htr,"text",encoding="UTF-8"))
+		} 
+		unirefAccs <- sapply(results$results,function(x)x$to$id)
+
+		# unirefAccs <- strsplit(content(htr,"text",encoding="UTF-8"),"\n")[[1]]
 		if (length(unirefAccs) == 0){
 			stop("No Uniref entry exists for ",acc)
 		} else if (length(unirefAccs) > 1) {
@@ -349,33 +383,57 @@ calc.conservation <- function(acc,overrideCache=FALSE) {
 		}
 
 		#Resolve the member IDs for the Uniref cluster
-		ref.url <- paste0(uniref90.base,unirefAccs,".list")
+		ref.url <- paste0(uniref90.base,unirefAccs,"/members?format=list&size=500")
 		htr <- GET(ref.url)
 		if (http_status(htr)$category != "Success") {
 			stop("Unable to access Uniref!\n",http_status(htr)$message)
 		}
 		xrefs <- strsplit(content(htr,"text",encoding="UTF-8"),"\n")[[1]]
-		#double-check that this is the correct cluster
-		if (!(acc %in% xrefs)) {
-			stop("UniRef Cluster does not contain query protein!")
-		}
-		# #make sure query protein is at the top of the list, otherwise re-order
-		# if (xrefs[[1]] != acc) {
-		# 	xrefs <- c(acc,setdiff(xrefs,acc))
+		# #double-check that this is the correct cluster
+		# this doesn't work anymore because the IDs are not necessarily accessions :P
+		# if (!any(grepl(acc,xrefs))) {
+		# 	stop("UniRef Cluster does not contain query protein!")
 		# }
 
 		cat("Retrieving sequences...")
 		#use batch-service to download multi-fasta file for the set of sequences
-		htr <- POST(batch.base, body=list(
-			uploadQuery=paste(xrefs,collapse=" "),
-			format="fasta",
-			from="ACC+ID",
-			to="ACC"
-		),encode="multipart")
+
+		htr <- httr::POST(
+			paste0(batch.base,"run"), 
+			body=list(
+				ids=paste(xrefs,collapse=","), from="UniProtKB_AC-ID", to="UniProtKB"
+			),
+			encode="form", accept("*/*")
+		)
 		if (http_status(htr)$category != "Success") {
-			stop("Error accessing UniprotKB!\n",http_status(htr)$message)
-		}	
+			stop("Unable to access UniprotKB!\n",http_status(htr)$message)
+		}
+		jobId <- RJSONIO::fromJSON(content(htr,"text",encoding="UTF-8"))
+
+		#Poll the job status
+		jobStatus <- c(jobStatus="UNKNOWN")
+		while (!("results" %in% names(jobStatus) || jobStatus %in% c("FINISHED"))) {
+			Sys.sleep(.2)
+			htr <- httr::GET(
+				paste0(batch.base,"status/",jobId),accept("*/*")
+			)
+			if (http_status(htr)$category != "Success") {
+				stop("Unable to access UniprotKB!\n",http_status(htr)$message)
+			}
+			jobStatus <- RJSONIO::fromJSON(content(htr,"text",encoding="UTF-8"))
+		}
+
+		#retrieve result
+		Sys.sleep(.2)
+		htr <- httr::GET(
+			paste0(batch.base,"uniprotkb/results/",jobId,"?format=fasta"),accept("*/*")
+		)
+		if (http_status(htr)$category != "Success") {
+			stop("Unable to access UniprotKB!\n",http_status(htr)$message)
+		}
 		multifasta <- content(htr,"text",encoding="UTF-8")
+		# results <- fromJSON(content(htr,"text",encoding="UTF-8"))
+		
 		cat("success\n")
 
 		#!! make sure query protein is first in the list !!
@@ -389,7 +447,7 @@ calc.conservation <- function(acc,overrideCache=FALSE) {
 		if (length(query.idx) == 0) {
 			stop("Uniref cluster FASTA file does not contain query sequence!")
 		}
-		if (query.idx != 1) {
+		if (query.idx[[1]] != 1) {
 			query.start <- header.idx[[query.idx]]
 			query.end <- c(header.idx,length(fastalines)+1)[[query.idx+1]]-1
 			multifasta <- c(fastalines[query.start:query.end],fastalines[-(query.start:query.end)])

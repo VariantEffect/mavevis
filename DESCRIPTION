@@ -1,13 +1,13 @@
 Package: mavevis
 Title: Visualization for MaveDB
-Version: 0.1.4.9000
+Version: 0.1.5.9000
 Authors@R: person("Jochen", "Weile", email = "jochenweile@gmail.com", role = c("aut", "cre"))
 Description: Query data from MaveDB and visualize as genophenograms with added tracks for structure information.
 Depends: R (>= 3.2.3)
 License: AGPL-3 + file COPYING
 Encoding: UTF-8
 LazyData: true
-Imports: rapimave, hgvsParseR, yogitools, httr, gdata, hash
+Imports: rapimave, hgvsParseR, yogitools, httr, gdata, hash, xml2
 Suggests: testthat
 RoxygenNote: 7.1.2
 Remotes: github::VariantEffect/rapimave, github::VariantEffect/hgvsParseR, github::jweile/yogitools
