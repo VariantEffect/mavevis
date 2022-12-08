@@ -291,13 +291,16 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 
 		domains <- data.frame()
 		try({
-			domains <- fetch.domains.pfam(acc=uniprotId)
+			# domains <- fetch.domains.pfam(acc=uniprotId)
+			domains <- fetch.domains.uniprot(uniprotId)
+			colkey <- c(DOMAIN="goldenrod1",REPEAT="goldenrod2",SIGNAL="goldenrod3")
 		})
 
 		td <- new.trackdrawer(l=length(wt.aa),nox=TRUE)
 		td$add.constrack(cons)
 		if (nrow(domains) > 0) {
-			td$add.domtrack(domains,c(`Pfam-A`="orange"))
+			# td$add.domtrack(domains,c(`Pfam-A`="orange"))
+			td$add.domtrack(domains,colkey)
 		}
 
 		if (!is.null(pdbs)) {
