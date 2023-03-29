@@ -180,8 +180,17 @@ fetch.domains.uniprot <- function(acc) {
   } else {
 
 		cat("Retrieving data from cache...\n")
-		out <- read.csv(cacheFile)
-
+		out <- data.frame(
+	    type=character(0),
+	    name=character(0),
+	    start=integer(0),
+	    end=integer(0)
+		)
+		tryCatch({
+			out <- read.csv(cacheFile)
+		},error=function(e){
+			cat("(Cache file empty!)\n")
+		})
   }
   return(out)
 }
