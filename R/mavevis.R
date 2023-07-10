@@ -292,8 +292,11 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 		domains <- data.frame()
 		try({
 			# domains <- fetch.domains.pfam(acc=uniprotId)
-			domains <- fetch.domains.uniprot(uniprotId)
-			colkey <- c(DOMAIN="goldenrod1",REPEAT="goldenrod2",SIGNAL="goldenrod3")
+			domains <- fetch.domains.uniprot(uniprotId,overrideCache=overrideCache)
+			colkey <- c(
+				DOMAIN="goldenrod1",REPEAT="goldenrod2",SIGNAL="goldenrod3",
+				ZN_FING="chartreuse2",MOTIF="chartreuse3",REGION="chartreuse4"
+			)
 		})
 
 		td <- new.trackdrawer(l=length(wt.aa),nox=TRUE)

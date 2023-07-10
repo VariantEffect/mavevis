@@ -143,12 +143,12 @@ find.pdbs <- function(acc, filterRange=NA) {
 #'   \item end: the end amino acid position
 #' }
 #' @export
-fetch.domains.uniprot <- function(acc) {
+fetch.domains.uniprot <- function(acc,overrideCache=FALSE) {
 
 
 	cacheFile <- getCacheFile(paste0(acc,"_UPdomains.csv"))
 
-	if (!file.exists(cacheFile)) {
+	if (!file.exists(cacheFile) || overrideCache) {
 
 	  library("httr")
 	  set_config(config(ssl_verifypeer = 0L))
@@ -162,11 +162,11 @@ fetch.domains.uniprot <- function(acc) {
 
 	  lines <- strsplit(content(htr,"text",encoding="UTF-8"),"\n")[[1]]
 
-	  domain.lines <- grep("^FT\\s+(SIGNAL|DOMAIN|REPEAT)",lines)
+	  domain.lines <- grep("^FT\\s+(SIGNAL|DOMAIN|REPEAT|ZN_FING|MOTIF|REGION)",lines)
 	  if (length(domain.lines) == 0) {
 	    out <- data.frame()
 	  } else {
-		  domain.data <- yogitools::extract.groups(lines[domain.lines],"(SIGNAL|DOMAIN|REPEAT)\\s+(\\d+)..(\\d+)")
+		  domain.data <- yogitools::extract.groups(lines[domain.lines],"(SIGNAL|DOMAIN|REPEAT|ZN_FING|MOTIF|REGION)\\s+(\\d+)..(\\d+)")
 		  domain.names <- yogitools::extract.groups(lines[domain.lines+1],"/note=\\\"(.*)\\\"")
 		  out <- data.frame(
 		    type=domain.data[,1],
