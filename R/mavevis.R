@@ -306,10 +306,22 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 			td$add.domtrack(domains,colkey)
 		}
 
+		strucfeats <- NULL
+		tryCatch({
+			strucfeats <- list(calc.strucfeats(uniprotId,main.chain="A",db="alphafold"))
+		},error=function(e) {
+			cat("Unable to fetch AlphaFold structure.")
+		})
+
 		if (!is.null(pdbs)) {
 			cat("Obtaining structural features...\n")
-			strucfeats <- mapply(calc.strucfeats,pdb=pdbs,main.chain=mainChains,SIMPLIFY=FALSE)
+			strucfeats.pdb <- mapply(calc.strucfeats,pdb=pdbs,main.chain=mainChains,SIMPLIFY=FALSE)
+			strucfeats <- c(strucfeats,strucfeats.pdb)
+		} else {
+			cat("No PDB references supplied. \n")
+		}
 
+		if (length(strucfeats) > 0) {
 			#truncate features to scanned domain
 			frag.l <- max(sm.mut$start,na.rm=TRUE)-min(sm.mut$start,na.rm=TRUE)
 			domain.range <- seq.offset:(seq.offset+frag.l)
@@ -342,7 +354,7 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 				}
 			}
 		} else {
-			cat("No PDB references supplied. Skipping structure tracks.\n")
+			cat("No AlphaFold or PDB data available. Skipping structure tracks.\n")
 		}
 	} else {
 		cat("No uniprot ID supplied. Skipping all tracks.\n")
