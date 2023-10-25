@@ -4,7 +4,7 @@
 \alias{fetch.domains.uniprot}
 \title{Find domains for a Uniprot accession}
 \usage{
-fetch.domains.uniprot(acc)
+fetch.domains.uniprot(acc, overrideCache = FALSE)
 }
 \arguments{
 \item{acc}{the Uniprot accession}

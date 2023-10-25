@@ -4,13 +4,25 @@
 \alias{calc.strucfeats}
 \title{Calculate structural features}
 \usage{
-calc.strucfeats(pdb.acc, main.chain)
+calc.strucfeats(
+  acc,
+  main.chain,
+  db = c("pdb", "alphafold"),
+  offset = 0L,
+  overrideCache = FALSE
+)
 }
 \arguments{
-\item{pdb.acc}{The PDB accession to use, e.g. "3UIP"}
+\item{acc}{The PDB or Uniprot accession to use, e.g. "3UIP"}
 
 \item{main.chain}{The chain identifier in the PDB file that corresponds 
 to the protein of interest. Should be a single uppercase letter, e.g. "A".}
+
+\item{db}{either 'pdb' or 'alphafold'}
+
+\item{offset}{position offset for incorrectly annotated pdb files (integer)}
+
+\item{overrideCache}{if true, ignore cached files and query all data from scratch}
 }
 \value{
 a \code{data.frame} detailing secondary structure, solvent accessibility,

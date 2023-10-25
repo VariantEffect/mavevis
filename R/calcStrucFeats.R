@@ -205,6 +205,8 @@ subcomplex.combos <- function(pdb.file,chain.sets) {
 #' @param main.chain The chain identifier in the PDB file that corresponds 
 #'    to the protein of interest. Should be a single uppercase letter, e.g. "A".
 #' @param db either 'pdb' or 'alphafold'
+#' @param offset position offset for incorrectly annotated pdb files (integer)
+#' @param overrideCache if true, ignore cached files and query all data from scratch
 #' @return a \code{data.frame} detailing secondary structure, solvent accessibility,
 #'    and burial in interfaces.
 #' @examples
@@ -212,11 +214,11 @@ subcomplex.combos <- function(pdb.file,chain.sets) {
 #' sfeats <- calc.strucfeats("3UIP","A")
 #' }
 #' @export
-calc.strucfeats <- function(acc,main.chain,db=c("pdb","alphafold")) {
+calc.strucfeats <- function(acc,main.chain,db=c("pdb","alphafold"),offset=0L,overrideCache=FALSE) {
 
 	struc.cache.file <- getCacheFile(paste0(acc,":",main.chain,"_features.csv"))
 
-	if (file.exists(struc.cache.file)) {
+	if (file.exists(struc.cache.file) && !overrideCache) {
 		cat("Using cached features...\n")
 		burial.all <- read.csv(struc.cache.file)
 		return(burial.all)
@@ -300,8 +302,8 @@ calc.strucfeats <- function(acc,main.chain,db=c("pdb","alphafold")) {
 
 
 	cat("Compiling results...\n")
-	rownames(burial) <- burial$pos
-	rownames(secstruc) <- secstruc$residue
+	rownames(burial) <- burial$pos+offset
+	rownames(secstruc) <- secstruc$residue+offset
 
 	allpos <- 1:max(burial$pos)
 	burial.all <- cbind(burial[as.character(allpos),],secstruc=secstruc[as.character(allpos),"struc"])

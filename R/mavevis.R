@@ -315,7 +315,7 @@ dashboard <- function(ssid,uniprotId=NULL,pdbs=NULL,mainChains=NULL,
 
 		if (!is.null(pdbs)) {
 			cat("Obtaining structural features...\n")
-			strucfeats.pdb <- mapply(calc.strucfeats,pdb=pdbs,main.chain=mainChains,SIMPLIFY=FALSE)
+			strucfeats.pdb <- mapply(calc.strucfeats,acc=pdbs,main.chain=mainChains,SIMPLIFY=FALSE)
 			strucfeats <- c(strucfeats,strucfeats.pdb)
 		} else {
 			cat("No PDB references supplied. \n")

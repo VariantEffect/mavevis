@@ -1,2 +1,4 @@
 ^docker$
 ^.git
+^.*\.Rproj$
+^\.Rproj\.user$

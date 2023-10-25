@@ -9,6 +9,6 @@ Encoding: UTF-8
 LazyData: true
 Imports: rapimave, hgvsParseR, yogitools, httr, gdata, hash, xml2
 Suggests: testthat
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Remotes: github::VariantEffect/rapimave, github::VariantEffect/hgvsParseR, github::jweile/yogitools
 SystemRequirements: DSSP, OpenSASA, ClustalO
